@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model RiskAnomaly {
+  id          String   @id @default(cuid())
+  description String
+  level       String   // e.g., "High", "Medium", "Low"
+  clientId    String?  // Optional: Link to a specific client
+  createdAt   DateTime @default(now())
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  status    String   // e.g., "Fidèle", "Solvable", "Insolvable"
+  createdAt DateTime @default(now())
+}
