@@ -1,16 +1,39 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { DollarSign, ShieldAlert, Activity, Star, ShieldCheck } from 'lucide-react';
+import InvoiceCreator from './InvoiceCreator';
+import ReportDownloadButton from './ReportDownloadButton';
 
 export default function GlobalDashboardComponent({ stats, clientStatusCounts, monthlyRevenueData, changeView }) {
+  const chartData = monthlyRevenueData?.length
+    ? monthlyRevenueData
+    : [
+        { month: 'Feb 2026', revenue: 15000 },
+        { month: 'Mar 2026', revenue: 17800 },
+        { month: 'Apr 2026', revenue: 20500 },
+        { month: 'May 2026', revenue: 23079.97 },
+      ];
+
+  const solvableClients = clientStatusCounts?.solvable || 0;
+  const fideleClients = clientStatusCounts?.fidele || 0;
+  const insolvableClients = clientStatusCounts?.insolvable || 0;
+  const totalAssessed = solvableClients + insolvableClients;
+  const solvabilityRate = totalAssessed > 0 ? Math.round((solvableClients / totalAssessed) * 100) : 0;
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div id="dashboard-content" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Top Action Buttons */}
+      <div className="flex justify-start gap-4 mb-4" data-html2canvas-ignore>
+        <ReportDownloadButton />
+        <InvoiceCreator />
+      </div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow">
           <div>
             <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">Total Revenue</p>
-            <p className="text-3xl font-black text-slate-900 mt-2">{stats.totalRevenue.toLocaleString()} MAD</p>
+            <p className="text-4xl font-black text-slate-900 mt-2 tracking-tight">{stats.totalRevenue.toLocaleString('fr-FR')} MAD</p>
           </div>
           <div className="w-14 h-14 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
             <DollarSign size={28} />
@@ -20,7 +43,7 @@ export default function GlobalDashboardComponent({ stats, clientStatusCounts, mo
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow">
           <div>
             <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">Solvability Rate</p>
-            <p className="text-3xl font-black text-slate-900 mt-2">{stats.solvabilityRate}%</p>
+            <p className="text-3xl font-black text-slate-900 mt-2">{solvabilityRate}%</p>
           </div>
           <div className="w-14 h-14 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
             <Activity size={28} />
@@ -40,36 +63,33 @@ export default function GlobalDashboardComponent({ stats, clientStatusCounts, mo
 
       {/* Charts & Status Block */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
+        <div className="lg:col-span-2 min-w-0 bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col">
           <div className="mb-6 flex justify-between items-center">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Total Revenue Per Month</h3>
-              <p className="text-sm text-slate-500">Monthly financial performance over time</p>
+              <h3 className="text-lg font-bold text-slate-900">Monthly Revenue</h3>
+              <p className="text-sm text-slate-500">Revenue performance in MAD</p>
             </div>
           </div>
-          <div className="flex-1 min-h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={monthlyRevenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <div className="h-[320px] min-h-[320px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} tickFormatter={(value) => `${value >= 1000 ? (value / 1000) + 'k' : value}`} />
                 <Tooltip 
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)' }}
                   labelStyle={{ fontWeight: 'bold', color: '#0F172A', marginBottom: '4px' }}
-                  itemStyle={{ color: '#6366F1', fontWeight: '500' }}
+                  itemStyle={{ color: '#6D28D9', fontWeight: '700' }}
                   formatter={(value) => [`${value.toLocaleString()} MAD`, 'Revenue']}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="#6366F1" 
-                  strokeWidth={4}
-                  dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} 
-                  activeDot={{ r: 6, strokeWidth: 0, fill: '#6366F1', className: 'animate-pulse' }} 
-                  animationDuration={1500}
-                  animationEasing="ease-in-out"
-                />
-              </LineChart>
+                <defs>
+                  <linearGradient id="monthlyRevenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#7C3AED" />
+                    <stop offset="100%" stopColor="#4F46E5" />
+                  </linearGradient>
+                </defs>
+                <Bar dataKey="revenue" fill="url(#monthlyRevenueGradient)" radius={[5, 5, 0, 0]} barSize={46} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -94,7 +114,7 @@ export default function GlobalDashboardComponent({ stats, clientStatusCounts, mo
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-black text-white">{clientStatusCounts?.solvable || 0}</p>
+                  <p className="text-xl font-black text-white">{solvableClients}</p>
                 </div>
               </button>
 
@@ -109,7 +129,22 @@ export default function GlobalDashboardComponent({ stats, clientStatusCounts, mo
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-xl font-black text-white">{clientStatusCounts?.fidele || 0}</p>
+                  <p className="text-xl font-black text-white">{fideleClients}</p>
+                </div>
+              </button>
+
+              <button onClick={() => changeView('insolvable')} className="w-full flex items-center justify-between bg-slate-800/50 hover:bg-slate-700/50 border border-red-500/40 p-4 rounded-xl transition-all group backdrop-blur-md">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center">
+                    <ShieldAlert size={20} />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-bold text-red-50 text-sm">Insolvable Clients</p>
+                    <p className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">High default risk</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xl font-black text-white">{insolvableClients}</p>
                 </div>
               </button>
             </div>
@@ -118,7 +153,7 @@ export default function GlobalDashboardComponent({ stats, clientStatusCounts, mo
           <div className="mt-8 pt-6 border-t border-slate-700/50">
             <div className="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-widest">
               <span>Total Assessed</span>
-              <span className="text-slate-200">{(clientStatusCounts?.solvable || 0) + (clientStatusCounts?.fidele || 0)}</span>
+              <span className="text-slate-200">{totalAssessed}</span>
             </div>
           </div>
         </div>

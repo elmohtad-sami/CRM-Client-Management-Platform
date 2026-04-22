@@ -11,11 +11,6 @@ import GlobalDashboardComponent from './components/GlobalDashboardComponent';
 import AddRiskForm from './components/AddRiskForm';
 import RiskAnomaliesList from './components/RiskAnomaliesList';
 
-const INITIAL_DATA = [
-  { id: "1", clientName: 'Atlas Corp', date: '2026-04-01', amountHT: 1000, tva: 200, totalTTC: 1200, paymentStatus: 'Paid', paymentDelay: 0, paymentMethod: 'Bank Transfer', flags: [] },
-  { id: "2", clientName: 'Nexus Info', date: '2026-04-02', amountHT: 8000, tva: 1600, totalTTC: 9600, paymentStatus: 'Pending', paymentDelay: 45, paymentMethod: 'Cash', flags: [] },
-];
-
 export default function App() {
   const normalizeClientStatus = (value) => {
     if (!value) return null;
@@ -54,7 +49,7 @@ export default function App() {
     }
     return [];
   });
-  const [filter, setFilter] = useState('All'); 
+  const [filter, setFilter] = useState('Tous'); 
   const [selectedClientName, setSelectedClientName] = useState(null);
   const [currentView, setCurrentView] = useState(() => {
     if (typeof window === 'undefined') return 'dashboard';
@@ -67,7 +62,7 @@ export default function App() {
   const [selectedInvoice, setSelectedInvoice] = useState(null); 
   const [editingId, setEditingId] = useState(null);
 
-  const [formData, setFormData] = useState({ clientName: '', clientStatus: 'Fidèle', date: '', amountHT: '', tva: '', paymentStatus: 'Pending', paymentDelay: '', paymentMethod: 'Bank Transfer' });
+  const [formData, setFormData] = useState({ clientName: '', clientStatus: 'Fidele', date: '', dueDate: '', amountHT: '', tva: '', paymentStatus: 'Pending', paymentDelay: '', paymentMethod: 'Bank Transfer', status: 'En attente' });
 
   // --- PERSISTENCE ---
   useEffect(() => {
@@ -124,7 +119,7 @@ export default function App() {
     const map = {};
 
     clientsData.forEach(client => {
-      map[client.name] = client.isSolvable ? 'Solvable' : 'Fidèle';
+      map[client.name] = client.isSolvable ? 'Solvable' : 'Insolvable';
     });
 
     invoices.forEach(inv => {
@@ -141,8 +136,9 @@ export default function App() {
     return Object.values(clientsStatusByName).reduce((acc, status) => {
       if (status === 'Fidèle') acc.fidele += 1;
       if (status === 'Solvable') acc.solvable += 1;
+      if (status === 'Insolvable') acc.insolvable += 1;
       return acc;
-    }, { fidele: 0, solvable: 0 });
+    }, { fidele: 0, solvable: 0, insolvable: 0 });
   }, [clientsStatusByName]);
 
   const monthlyRevenueData = useMemo(() => {
@@ -156,7 +152,7 @@ export default function App() {
       if (!acc[monthKey]) {
         acc[monthKey] = {
           monthKey,
-          month: parsedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          month: parsedDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }),
           revenue: 0
         };
       }
@@ -185,7 +181,7 @@ export default function App() {
       result = result.filter(inv => clientsStatusByName[inv.clientName] === 'Fidèle');
     } else if (currentView === 'insolvable') {
       result = result.filter(inv => clientsStatusByName[inv.clientName] === 'Insolvable');
-    } else if (filter !== 'All') {
+    } else if (filter !== 'Tous') {
       result = result.filter(inv => {
         const client = clientsData.find(c => c.name === inv.clientName);
         if (filter === 'Solvable') return client?.isSolvable;
@@ -201,17 +197,17 @@ export default function App() {
   const changeView = (view) => {
     setCurrentView(view);
     setSelectedClientName(null);
-    setFilter('All');
+    setFilter('Tous');
     window.history.pushState({}, '', view === 'dashboard' ? '/' : `/?view=${encodeURIComponent(view)}`);
   };
 
   // --- CRUD ACTIONS ---
   const openModal = (invoice = null) => {
     if (invoice) {
-      setFormData({ clientStatus: 'Fidèle', ...invoice });
+      setFormData({ clientStatus: 'Fidele', ...invoice });
       setEditingId(invoice.id);
     } else {
-      setFormData({ clientName: selectedClientName || '', clientStatus: 'Fidèle', date: '', amountHT: '', tva: '', paymentStatus: 'Pending', paymentDelay: 0, paymentMethod: 'Bank Transfer', status: 'En attente' });
+      setFormData({ clientName: selectedClientName || '', clientStatus: 'Fidele', date: '', dueDate: '', amountHT: '', tva: '', paymentStatus: 'Pending', paymentDelay: 0, paymentMethod: 'Bank Transfer', status: 'En attente' });
       setEditingId(null);
     }
     setIsModalOpen(true);
@@ -222,7 +218,13 @@ export default function App() {
     const amountHT = Number(formData.amountHT);
     const tva = Number(formData.tva);
     const newInvoice = {
-      ...formData, amountHT, tva, totalTTC: amountHT + tva, paymentDelay: Number(formData.paymentDelay), flags: [], status: formData.status || 'En attente'
+      ...formData,
+      amountHT,
+      tva,
+      totalTTC: amountHT + tva,
+      paymentDelay: Number(formData.paymentDelay),
+      flags: [],
+      status: formData.status || 'En attente'
     };
 
     if (editingId) {
@@ -243,6 +245,27 @@ export default function App() {
     setSelectedInvoice(prev => prev && prev.id === id ? { ...prev, status: 'Payée' } : prev);
   };
 
+  const getInvoiceDisplayStatus = (invoice) => {
+    if (invoice?.status === 'Payée') {
+      return { label: 'Payée', className: 'text-emerald-600 bg-emerald-50 border-emerald-200' };
+    }
+
+    const dueDate = invoice?.dueDate ? new Date(invoice.dueDate) : null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (dueDate && !Number.isNaN(dueDate.getTime())) {
+      const normalizedDueDate = new Date(dueDate);
+      normalizedDueDate.setHours(0, 0, 0, 0);
+
+      if (normalizedDueDate < today) {
+        return { label: 'En retard', className: 'text-rose-600 bg-rose-50 border-rose-200' };
+      }
+    }
+
+    return { label: 'En attente', className: 'text-amber-700 bg-amber-50 border-amber-200' };
+  };
+
   // --- AUDIT SYSTEM ---
   const handleRunAudit = () => {
     const audited = invoices.map(inv => {
@@ -250,10 +273,10 @@ export default function App() {
       const expectedTVA = inv.amountHT * 0.20;
       
       if (Math.abs(expectedTVA - inv.tva) > 0.01) {
-        flags.push(`VAT Anomaly: Expected 20% (${expectedTVA.toLocaleString()} MAD), found ${inv.tva.toLocaleString()} MAD. Ref: Article 117 CGI.`);
+        flags.push(`Anomalie TVA : 20% attendus (${expectedTVA.toLocaleString()} MAD), ${inv.tva.toLocaleString()} MAD trouves. Ref : Article 117 CGI.`);
       }
       if (inv.paymentMethod === 'Cash' && inv.totalTTC > 5000) {
-        flags.push(`Regulation Violation: Cash payments exceeding 5,000 MAD are forbidden. Found: ${inv.totalTTC.toLocaleString()} MAD. Ref: Article 193 CGI.`);
+        flags.push(`Violation reglementaire : les paiements en especes superieurs a 5 000 MAD sont interdits. Montant trouve : ${inv.totalTTC.toLocaleString()} MAD. Ref : Article 193 CGI.`);
       }
       return { ...inv, flags };
     });
@@ -269,7 +292,7 @@ export default function App() {
     setUser(null);
     setInvoices([]);
     setHasAudited(false);
-    setFilter('All');
+    setFilter('Tous');
     setSelectedClientName(null);
   };
 
@@ -523,6 +546,10 @@ export default function App() {
                   </select>
                 </div>
               </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Date d'échéance</label>
+                <input required type="date" className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium" value={formData.dueDate} onChange={e => setFormData({...formData, dueDate: e.target.value})} />
+              </div>
               <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Amount HT</label>
@@ -578,9 +605,10 @@ export default function App() {
                 <div className="space-y-2 text-sm text-slate-700 font-medium">
                   <div className="flex justify-between"><span className="text-slate-500">Client</span> <span className="text-slate-900 font-bold">{selectedInvoice.clientName}</span></div>
                   <div className="flex justify-between"><span className="text-slate-500">Date</span> <span>{selectedInvoice.date}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Due Date</span> <span>{selectedInvoice.dueDate || '-'}</span></div>
                   <div className="flex justify-between"><span className="text-slate-500">TTC Value</span> <span className="font-bold">{selectedInvoice.totalTTC.toLocaleString()} MAD</span></div>
                   <div className="flex justify-between"><span className="text-slate-500">Payment</span> <span>{selectedInvoice.paymentMethod}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Status</span> <span className="font-bold text-indigo-600">{selectedInvoice.status || 'En attente'}</span></div>
+                  <div className="flex justify-between items-center gap-3"><span className="text-slate-500">Status</span> <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${getInvoiceDisplayStatus(selectedInvoice).className}`}>{getInvoiceDisplayStatus(selectedInvoice).label}</span></div>
                 </div>
               </div>
 

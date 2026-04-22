@@ -21,3 +21,19 @@ model Client {
   status    String   // e.g., "Fidèle", "Solvable", "Insolvable"
   createdAt DateTime @default(now())
 }
+
+model Invoice {
+  id            String   @id @default(cuid())
+  clientName    String
+  date          DateTime
+  dueDate       DateTime
+  amountHT      Float
+  tva           Float
+  totalTTC      Float
+  paymentStatus String
+  paymentDelay  Int
+  paymentMethod String
+  status        String   @default("En attente")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
