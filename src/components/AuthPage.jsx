@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Building2, Mail, Lock, User, Briefcase, ArrowRight } from 'lucide-react';
+import { authApi } from '../api/auth';
 
-export default function AuthPage({ onLogin }) {
-  const [isLogin, setIsLogin] = useState(true);
+export default function AuthPage({ onLogin, initialMode = 'login' }) {
+  const [isLogin, setIsLogin] = useState(initialMode !== 'register');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form states
   const [fullName, setFullName] = useState('');
@@ -11,33 +13,35 @@ export default function AuthPage({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    setIsLogin(initialMode !== 'register');
+  }, [initialMode]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    if (isLogin) {
-      const storedUser = localStorage.getItem('finance_crm_user');
-      if (storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser.email === email && parsedUser.password === password) {
-          localStorage.setItem('isAuthenticated', 'true');
-          onLogin(parsedUser);
-        } else {
-          setError('Invalid email or password.');
-        }
-      } else {
-        setError('No account found. Please create one.');
-      }
-    } else {
-      // Validation for sign up
-      if (!fullName || !companyName || !email || !password) {
+    if (isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      if (!isLogin && (!fullName || !companyName || !email || !password)) {
         setError('All fields are required.');
         return;
       }
-      const userData = { fullName, companyName, email, password };
-      localStorage.setItem('finance_crm_user', JSON.stringify(userData));
-      localStorage.setItem('isAuthenticated', 'true');
-      onLogin(userData); // automatically log them in after sign up
+
+      const payload = isLogin
+        ? await authApi.login({ email, password })
+        : await authApi.register({ fullName, companyName, email, password });
+
+      onLogin?.(payload);
+    } catch (submissionError) {
+      setError(submissionError.message || 'Unable to authenticate.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -153,9 +157,10 @@ export default function AuthPage({ onLogin }) {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold tracking-wide py-3 rounded-xl mt-6 transition-all shadow-md hover:shadow-indigo-500/30 flex items-center justify-center gap-2 uppercase text-sm"
             >
-              {isLogin ? 'Sign In Securely' : 'Complete Setup'} <ArrowRight size={16} />
+              {isSubmitting ? 'Please wait...' : isLogin ? 'Sign In Securely' : 'Complete Setup'} <ArrowRight size={16} />
             </button>
           </form>
         </div>

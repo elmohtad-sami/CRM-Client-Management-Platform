@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Building2, Users, AlertCircle, Plus, 
   Trash2, Edit2, X, Activity, DollarSign, 
-  Filter, Receipt, ShieldAlert, ChevronRight, BookOpen, Star, ShieldCheck, CheckCircle2, AlertTriangle, LogOut
+  Filter, Receipt, ShieldAlert, ChevronRight, BookOpen, Star, ShieldCheck, CheckCircle2, AlertTriangle, LogOut, Menu, Settings
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import AuthPage from './components/AuthPage';
@@ -10,8 +11,18 @@ import FilteredClientList from './components/FilteredClientList';
 import GlobalDashboardComponent from './components/GlobalDashboardComponent';
 import AddRiskForm from './components/AddRiskForm';
 import RiskAnomaliesList from './components/RiskAnomaliesList';
+import ClientDetailsPage from './components/client-details/ClientDetailsPage';
+import ProtectedPermissionRoute from './components/ProtectedPermissionRoute';
+import { useUser } from './context/UserContext';
+import { useClients } from './context/ClientsContext';
+import NotificationBell from './components/NotificationBell';
+import { authApi } from './api/auth';
 
 export default function App() {
+  const navigate = useNavigate();
+  const { role, currentUser: user, token, login, logout, setCurrentUser, isAuthenticated } = useUser();
+  const { invoices, setInvoices } = useClients();
+
   const normalizeClientStatus = (value) => {
     if (!value) return null;
     const normalized = String(value).toLowerCase();
@@ -21,30 +32,11 @@ export default function App() {
     return null;
   };
 
-  // --- AUTH STATE ---
-  const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('isAuthenticated') === 'true');
-  const [user, setUser] = useState(() => {
-    const storedUser = localStorage.getItem('finance_crm_user');
-    return storedUser ? JSON.parse(storedUser) : null;
-  });
-
   // --- STATE ---
-  const [invoices, setInvoices] = useState(() => {
-    const storedUser = localStorage.getItem('finance_crm_user');
-    const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-    if (parsedUser && parsedUser.email) {
-      const saved = localStorage.getItem(`finance_crm_data_${parsedUser.email}`);
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
-  
   const [hasAudited, setHasAudited] = useState(false);
   const [riskAnomalies, setRiskAnomalies] = useState(() => {
-    const storedUser = localStorage.getItem('finance_crm_user');
-    const parsedUser = storedUser ? JSON.parse(storedUser) : null;
-    if (parsedUser && parsedUser.email) {
-      const saved = localStorage.getItem(`finance_crm_risks_${parsedUser.email}`);
+    if (user && user.email) {
+      const saved = localStorage.getItem(`finance_crm_risks_${user.email}`);
       return saved ? JSON.parse(saved) : [];
     }
     return [];
@@ -53,14 +45,28 @@ export default function App() {
   const [selectedClientName, setSelectedClientName] = useState(null);
   const [currentView, setCurrentView] = useState(() => {
     if (typeof window === 'undefined') return 'dashboard';
+    if (window.location.pathname.startsWith('/clients/')) return 'client-details';
+    if (window.location.pathname === '/settings') return 'settings';
     const params = new URLSearchParams(window.location.search);
     return params.get('view') || 'dashboard';
+  });
+  const [clientDetailsId, setClientDetailsId] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    const match = window.location.pathname.match(/^\/clients\/([^/]+)$/);
+    return match ? match[1] : null;
   });
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null); 
   const [editingId, setEditingId] = useState(null);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 1024 : false));
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({ fullName: '', email: '', companyName: '', profileImage: '' });
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [settingsMessage, setSettingsMessage] = useState('');
 
   const [formData, setFormData] = useState({ clientName: '', clientStatus: 'Fidele', date: '', dueDate: '', amountHT: '', tva: '', paymentStatus: 'Pending', paymentDelay: '', paymentMethod: 'Bank Transfer', status: 'En attente' });
 
@@ -73,12 +79,58 @@ export default function App() {
   }, [invoices, riskAnomalies, user]);
 
   useEffect(() => {
+    if (!user?.email) {
+      setRiskAnomalies([]);
+      return;
+    }
+
+    const saved = localStorage.getItem(`finance_crm_risks_${user.email}`);
+    setRiskAnomalies(saved ? JSON.parse(saved) : []);
+  }, [user?.email]);
+
+  useEffect(() => {
     const handleUrlChange = () => {
+      const clientMatch = window.location.pathname.match(/^\/clients\/([^/]+)$/);
+      if (clientMatch) {
+        setClientDetailsId(clientMatch[1]);
+        setCurrentView('client-details');
+        return;
+      }
+
+      if (window.location.pathname === '/settings') {
+        setClientDetailsId(null);
+        setCurrentView('settings');
+        return;
+      }
+
+      setClientDetailsId(null);
       const params = new URLSearchParams(window.location.search);
       setCurrentView(params.get('view') || 'dashboard');
     };
     window.addEventListener('popstate', handleUrlChange);
     return () => window.removeEventListener('popstate', handleUrlChange);
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        fullName: user.fullName || '',
+        email: user.email || '',
+        companyName: user.companyName || '',
+        profileImage: user.profileImage || ''
+      });
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (!mobile) setIsMobileSidebarOpen(false);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // --- ENGINE: CLIENT SCORING ---
@@ -198,7 +250,107 @@ export default function App() {
     setCurrentView(view);
     setSelectedClientName(null);
     setFilter('Tous');
-    window.history.pushState({}, '', view === 'dashboard' ? '/' : `/?view=${encodeURIComponent(view)}`);
+    if (isMobile) setIsMobileSidebarOpen(false);
+    if (view === 'dashboard') {
+      navigate('/');
+    } else if (view === 'settings') {
+      navigate('/settings');
+    } else if (view === 'client-details' && clientDetailsId) {
+      navigate(`/clients/${encodeURIComponent(String(clientDetailsId))}`);
+    } else {
+      navigate(`/?view=${encodeURIComponent(view)}`);
+    }
+  };
+
+  const openClientDetails = (clientId) => {
+    if (!clientId) return;
+    setClientDetailsId(String(clientId));
+    setCurrentView('client-details');
+    if (isMobile) setIsMobileSidebarOpen(false);
+    navigate(`/clients/${encodeURIComponent(String(clientId))}`);
+  };
+
+  const handleSaveProfile = (e) => {
+    e.preventDefault();
+    if (!user) return;
+
+    const updateProfile = async () => {
+      try {
+        const payload = await authApi.updateProfile({
+          fullName: profileForm.fullName,
+          email: profileForm.email,
+          companyName: profileForm.companyName,
+          profileImage: profileForm.profileImage
+        }, token);
+
+        if (user.email && profileForm.email && user.email !== profileForm.email) {
+          const oldDataKey = `finance_crm_data_${user.email}`;
+          const oldRisksKey = `finance_crm_risks_${user.email}`;
+          const newDataKey = `finance_crm_data_${profileForm.email}`;
+          const newRisksKey = `finance_crm_risks_${profileForm.email}`;
+          const existingData = localStorage.getItem(oldDataKey);
+          const existingRisks = localStorage.getItem(oldRisksKey);
+
+          if (existingData) {
+            localStorage.setItem(newDataKey, existingData);
+            localStorage.removeItem(oldDataKey);
+          }
+          if (existingRisks) {
+            localStorage.setItem(newRisksKey, existingRisks);
+            localStorage.removeItem(oldRisksKey);
+          }
+        }
+
+        login(payload);
+        setProfileForm({
+          fullName: payload.user.fullName || '',
+          email: payload.user.email || '',
+          companyName: payload.user.companyName || '',
+          profileImage: payload.user.profileImage || ''
+        });
+        setSettingsMessage('Profile updated successfully.');
+        setIsEditingProfile(false);
+      } catch (error) {
+        setSettingsMessage(error.message || 'Unable to update profile.');
+      }
+    };
+
+    void updateProfile();
+  };
+
+  const handleProfileImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imageData = String(reader.result || '');
+      setProfileForm(prev => ({ ...prev, profileImage: imageData }));
+      setSettingsMessage('Profile image selected. Save your profile to apply it.');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleChangePassword = (e) => {
+    e.preventDefault();
+    if (!user) return;
+
+    const updatePassword = async () => {
+      try {
+        const payload = await authApi.updatePassword({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+          confirmPassword: passwordForm.confirmPassword
+        }, token);
+
+        setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setSettingsMessage(payload.message || 'Password updated successfully.');
+      } catch (error) {
+        setSettingsMessage(error.message || 'Unable to update password.');
+      }
+    };
+
+    void updatePassword();
   };
 
   // --- CRUD ACTIONS ---
@@ -286,10 +438,7 @@ export default function App() {
 
   // --- LOGOUT SYSTEM ---
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('finance_crm_user');
-    setIsAuthenticated(false);
-    setUser(null);
+    logout();
     setInvoices([]);
     setHasAudited(false);
     setFilter('Tous');
@@ -297,30 +446,84 @@ export default function App() {
   };
 
   const selectedClientData = clientsData.find(c => c.name === selectedClientName);
+  const showSidebarLabels = isMobile || isSidebarExpanded;
+  const isSettingsPage = currentView === 'settings';
+  const roleBadgeClasses = {
+    Admin: 'border-rose-400/20 bg-rose-400/10 text-rose-300',
+    Finance: 'border-blue-400/20 bg-blue-400/10 text-blue-300',
+    Analyst: 'border-violet-400/20 bg-violet-400/10 text-violet-300',
+    Viewer: 'border-slate-400/20 bg-slate-400/10 text-slate-300'
+  };
+  const toggleSidebar = () => {
+    if (isMobile) {
+      setIsMobileSidebarOpen(prev => !prev);
+    } else {
+      setIsSidebarExpanded(prev => !prev);
+    }
+  };
 
   if (!isAuthenticated) {
     return (
       <AuthPage 
-        onLogin={(userData) => {
-          setIsAuthenticated(true);
-          setUser(userData);
-          const savedInfo = localStorage.getItem(`finance_crm_data_${userData.email}`);
+        onLogin={({ user: authUser, token: authToken }) => {
+          login({ user: authUser, token: authToken });
+          const savedInfo = localStorage.getItem(`finance_crm_data_${authUser.email}`);
           setInvoices(savedInfo ? JSON.parse(savedInfo) : []);
-        }} 
+        }}
       />
     );
   }
 
   return (
     <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden">
+      {isMobile && isMobileSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close sidebar overlay"
+          onClick={() => setIsMobileSidebarOpen(false)}
+          className="fixed inset-0 bg-slate-950/50 z-30 lg:hidden"
+        />
+      )}
       
       {/* === SIDEBAR (DARK) === */}
-      <div className="w-72 bg-slate-900 text-slate-300 flex flex-col shadow-xl z-20 shrink-0">
-        <div className="p-6 border-b border-slate-800">
-          <div className="flex items-center gap-3 text-white">
-            <Building2 className="text-indigo-400" size={28}/>
-            <h1 className="text-2xl font-bold tracking-tight">FinAudit CRM</h1>
-          </div>
+      <div className={`${
+        isMobile
+          ? `fixed inset-y-0 left-0 w-72 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} z-40`
+          : `${isSidebarExpanded ? 'w-72' : 'w-20'} relative translate-x-0 z-20`
+      } bg-slate-900 text-slate-300 flex flex-col shadow-xl shrink-0 transition-all duration-300 ease-in-out overflow-hidden`}>
+        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+          {showSidebarLabels && (
+            <div className="flex items-center gap-3 text-white">
+              {user?.profileImage ? (
+                <img
+                  src={user.profileImage}
+                  alt="User profile"
+                  className="h-9 w-9 rounded-xl object-cover ring-1 ring-white/20 shadow-lg shadow-indigo-500/20"
+                />
+              ) : (
+                <Building2 className="text-indigo-400" size={28}/>
+              )}
+              <h1 className="text-2xl font-bold tracking-tight whitespace-nowrap">FinAudit CRM</h1>
+            </div>
+          )}
+          {!showSidebarLabels && (
+            user?.profileImage ? (
+              <img
+                src={user.profileImage}
+                alt="User profile"
+                className="h-9 w-9 rounded-xl object-cover ring-1 ring-white/20 shadow-lg shadow-indigo-500/20"
+              />
+            ) : (
+              <Building2 className="text-indigo-400" size={28}/>
+            )
+          )}
+          <button
+            onClick={toggleSidebar}
+            className="ml-auto p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white shrink-0"
+            title={showSidebarLabels ? 'Collapse sidebar' : 'Expand sidebar'}
+          >
+            {showSidebarLabels ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto py-6 space-y-8">
@@ -330,40 +533,70 @@ export default function App() {
             <button 
               onClick={() => changeView('dashboard')}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium ${!selectedClientName && currentView === 'dashboard' ? 'bg-indigo-600 text-white shadow-sm' : 'hover:bg-slate-800 hover:text-white'}`}
+              title="Global Dashboard"
             >
-              <Activity size={18} /> Global Dashboard
+              <Activity size={18} /> 
+              {showSidebarLabels && <span>Global Dashboard</span>}
             </button>
           </div>
 
           {/* Smart Filters */}
           <div className="px-4 space-y-2">
-            <span className="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Financial Filters</span>
+            {showSidebarLabels && (
+              <span className="px-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Financial Filters</span>
+            )}
             <div className="space-y-1 mt-2">
               <button 
                 onClick={() => changeView('solvable')} 
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-sm ${!selectedClientName && currentView === 'solvable' ? 'bg-slate-800 border border-slate-700 text-white' : 'hover:bg-slate-800 hover:text-white border border-transparent'}`}
+                title="Solvable Clients"
               >
-                <span className="text-emerald-400"><ShieldCheck size={16}/></span> Solvable Clients
+                <span className="text-emerald-400"><ShieldCheck size={16}/></span> 
+                {showSidebarLabels && <span>Solvable Clients</span>}
               </button>
               <button 
                 onClick={() => changeView('fidèle')} 
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-sm ${!selectedClientName && currentView === 'fidèle' ? 'bg-slate-800 border border-slate-700 text-white' : 'hover:bg-slate-800 hover:text-white border border-transparent'}`}
+                title="Fidèle Clients"
               >
-                <span className="text-blue-400"><Star size={16}/></span> Fidèle Clients
+                <span className="text-blue-400"><Star size={16}/></span> 
+                {showSidebarLabels && <span>Fidèle Clients</span>}
               </button>
               <button 
                 onClick={() => changeView('insolvable')} 
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-sm ${!selectedClientName && currentView === 'insolvable' ? 'bg-slate-800 border border-slate-700 text-white' : 'hover:bg-slate-800 hover:text-white border border-transparent'}`}
+                title="Insolvable Clients"
               >
-                <span className="text-amber-400"><AlertTriangle size={16}/></span> Insolvable Clients
+                <span className="text-amber-400"><AlertTriangle size={16}/></span> 
+                {showSidebarLabels && <span>Insolvable Clients</span>}
               </button>
               <button 
                 onClick={() => changeView('risks')} 
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-sm ${!selectedClientName && currentView === 'risks' ? 'bg-slate-800 border border-slate-700 text-white' : 'hover:bg-slate-800 hover:text-white border border-transparent'}`}
+                title="Risk Anomalies"
               >
-                <span className="text-rose-400"><AlertCircle size={16}/></span> Risk Anomalies
+                <span className="text-rose-400"><AlertCircle size={16}/></span> 
+                {showSidebarLabels && <span>Risk Anomalies</span>}
               </button>
             </div>
+          </div>
+
+          <div className="px-4 space-y-2">
+            {showSidebarLabels && (
+              <div className="flex items-center gap-3 px-3 pt-1 pb-2 text-xs font-bold text-slate-500 uppercase tracking-wider border-t border-slate-800/80 mt-2">
+                <span className="h-px flex-1 bg-slate-800/80" />
+                <span>User Settings</span>
+                <span className="h-px flex-1 bg-slate-800/80" />
+              </div>
+            )}
+            <button
+              onClick={() => changeView('settings')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-sm ${isSettingsPage ? 'bg-indigo-600 text-white shadow-sm' : 'hover:bg-slate-800 hover:text-white border border-transparent'}`}
+              title="My Account"
+            >
+              <Settings size={16} className={isSettingsPage ? 'text-white' : 'text-slate-400'} />
+              {showSidebarLabels && <span>My Account</span>}
+            </button>
           </div>
         </div>
         
@@ -371,29 +604,63 @@ export default function App() {
         <div className="mt-auto p-4 border-t border-white/10 bg-slate-950/70 backdrop-blur-md relative overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-indigo-400/60 to-transparent" />
           <div className="absolute -right-10 -bottom-10 h-24 w-24 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none" />
-          <div className="relative rounded-2xl border border-white/10 bg-white/5 px-4 py-4 shadow-[0_12px_30px_rgba(15,23,42,0.35)]">
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div className="flex items-center gap-3 truncate">
-                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-sm font-bold text-white shrink-0 shadow-lg shadow-indigo-500/20 ring-1 ring-white/20">
+          {showSidebarLabels ? (
+            <div className="relative rounded-2xl border border-white/10 bg-white/5 px-4 py-4 shadow-[0_12px_30px_rgba(15,23,42,0.35)]">
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3 truncate">
+                  {user?.profileImage ? (
+                    <img
+                      src={user.profileImage}
+                      alt={user?.fullName || 'User'}
+                      className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-lg shadow-indigo-500/20 ring-1 ring-white/20"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-sm font-bold text-white shrink-0 shadow-lg shadow-indigo-500/20 ring-1 ring-white/20">
+                      {user?.fullName?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                  <div className="truncate">
+                    <p className="text-sm font-semibold text-slate-100 truncate">{user?.fullName || 'User'}</p>
+                    <p className="text-xs text-slate-400 truncate">{user?.companyName || 'Finance Dept'}</p>
+                  </div>
+                </div>
+                <div className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-semibold shrink-0 ${roleBadgeClasses[role] || roleBadgeClasses.Viewer}`}>
+                  <span className="h-2 w-2 rounded-full bg-current opacity-80" />
+                  {role}
+                </div>
+              </div>
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 px-3 py-2.5 text-sm font-semibold text-rose-300 transition-all hover:bg-rose-500 hover:text-white hover:border-rose-400/40 hover:shadow-lg hover:shadow-rose-500/20"
+              >
+                <LogOut size={16} /> Sign Out
+              </button>
+            </div>
+          ) : (
+            <div className="relative rounded-2xl border border-white/10 bg-white/5 px-2 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.35)] flex flex-col items-center gap-3">
+              {user?.profileImage ? (
+                <img
+                  src={user.profileImage}
+                  alt={user?.fullName || 'User'}
+                  className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-indigo-500/20 ring-1 ring-white/20"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-indigo-500/20 ring-1 ring-white/20">
                   {user?.fullName?.charAt(0) || 'U'}
                 </div>
-                <div className="truncate">
-                  <p className="text-sm font-semibold text-slate-100 truncate">{user?.fullName || 'User'}</p>
-                  <p className="text-xs text-slate-400 truncate">{user?.companyName || 'Finance Dept'}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-300 shrink-0">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_0_4px_rgba(52,211,153,0.12)]" />
-                Active
-              </div>
+              )}
+              <button
+                onClick={handleLogout}
+                title="Sign Out"
+                className="w-10 h-10 flex items-center justify-center rounded-xl border border-rose-400/20 bg-rose-500/10 text-rose-300 transition-all hover:bg-rose-500 hover:text-white hover:border-rose-400/40"
+              >
+                <LogOut size={16} />
+              </button>
+              <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold ${roleBadgeClasses[role] || roleBadgeClasses.Viewer}`}>
+                {role}
+              </span>
             </div>
-            <button 
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 px-3 py-2.5 text-sm font-semibold text-rose-300 transition-all hover:bg-rose-500 hover:text-white hover:border-rose-400/40 hover:shadow-lg hover:shadow-rose-500/20"
-            >
-              <LogOut size={16} /> Sign Out
-            </button>
-          </div>
+          )}
         </div>
       </div>
 
@@ -403,16 +670,28 @@ export default function App() {
         {/* Top Header */}
         <header className="bg-white border-b border-slate-200 px-8 py-5 flex justify-between items-center z-10 sticky top-0 shadow-sm">
           <div>
+            <button
+              onClick={toggleSidebar}
+              className="lg:hidden mb-3 p-2 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors text-slate-700"
+              title="Toggle sidebar"
+            >
+              <Menu size={20} />
+            </button>
             <h2 className="text-2xl font-bold text-slate-900">
-              {currentView !== 'dashboard' ? `Clients List - ${currentView === 'fidèle' ? 'Fidèles' : 'Solvables'}` : (selectedClientName ? `${selectedClientName} - Profile` : 'Global CRM Operations')}
+              {isSettingsPage
+                ? 'Settings'
+                : (currentView !== 'dashboard' ? `Clients List - ${currentView === 'fidèle' ? 'Fidèles' : 'Solvables'}` : (selectedClientName ? `${selectedClientName} - Profile` : 'Global CRM Operations'))}
             </h2>
-            <p className="text-sm text-slate-500 font-medium tracking-wide">
-              {currentView !== 'dashboard'
-                ? `Filtered by status: ${currentView === 'fidèle' ? 'Fidèle' : 'Solvable'}`
-                : (selectedClientName ? 'Dedicated client audit and finance tracking' : (user?.companyName ? `Overview for ${user.companyName}` : 'Enterprise firm overview'))}
-            </p>
-          </div>
+              <p className="text-sm text-slate-500 font-medium tracking-wide">
+                {isSettingsPage
+                  ? 'Manage your account details, security, and session settings.'
+                  : (currentView !== 'dashboard'
+                    ? `Filtered by status: ${currentView === 'fidèle' ? 'Fidèle' : 'Solvable'}`
+                    : (selectedClientName ? 'Dedicated client audit and finance tracking' : (user?.companyName ? `Overview for ${user.companyName}` : 'Enterprise firm overview')))}
+              </p>
+            </div>
           <div className="flex gap-3">
+              <NotificationBell />
             <button onClick={() => handleRunAudit()} disabled={invoices.length === 0} className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-lg flex items-center justify-center gap-2 font-semibold text-sm transition-all disabled:opacity-50 shadow-sm">
               <ShieldAlert size={16} /> Scan for Risks
             </button>
@@ -423,7 +702,103 @@ export default function App() {
         </header>
 
         <main className="p-8 space-y-8 max-w-7xl w-full mx-auto">
-          {selectedClientName ? (
+          {currentView === 'client-details' ? (
+            <ProtectedPermissionRoute action="view_clients">
+              <ClientDetailsPage
+                clientId={clientDetailsId || '1'}
+                onBack={() => changeView('dashboard')}
+                onDelete={() => {
+                  navigate('/');
+                  setCurrentView('dashboard');
+                }}
+              />
+            </ProtectedPermissionRoute>
+          ) : isSettingsPage ? (
+            <div className="grid gap-8 lg:grid-cols-2">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900">User Profile</h3>
+                    <p className="text-sm text-slate-500 mt-1">Review and update your account information.</p>
+                  </div>
+                  <button
+                    onClick={() => setIsEditingProfile(prev => !prev)}
+                    className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors"
+                  >
+                    {isEditingProfile ? 'Cancel Edit' : 'Edit Profile'}
+                  </button>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 border border-slate-200 p-5 space-y-4">
+                  <div className="flex items-center gap-4">
+                    {profileForm.profileImage ? (
+                      <img
+                        src={profileForm.profileImage}
+                        alt={user?.fullName || 'User'}
+                        className="w-14 h-14 rounded-2xl object-cover shadow-lg shadow-indigo-500/20 ring-1 ring-white/20"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-500/20">
+                        {user?.fullName?.charAt(0) || 'U'}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-lg font-bold text-slate-900">{user?.fullName || 'User'}</p>
+                      <p className="text-sm text-slate-500">{user?.email || 'No email'}</p>
+                    </div>
+                  </div>
+
+                  {isEditingProfile ? (
+                    <form onSubmit={handleSaveProfile} className="grid gap-4">
+                      <input className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={profileForm.fullName} onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })} placeholder="Full name" />
+                      <input className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} placeholder="Email" />
+                      <input className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={profileForm.companyName} onChange={(e) => setProfileForm({ ...profileForm, companyName: e.target.value })} placeholder="Department" />
+                      <label className="flex flex-col gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                        <span className="font-semibold text-slate-700">Profile image</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfileImageChange}
+                          className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800"
+                        />
+                      </label>
+                      <button type="submit" className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800">Save Profile</button>
+                    </form>
+                  ) : (
+                    <div className="grid gap-3 text-sm text-slate-700">
+                      <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-slate-200"><span className="text-slate-500">Image</span><span className="font-semibold text-slate-900">{user?.profileImage ? 'Custom image set' : 'Default avatar'}</span></div>
+                      <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-slate-200"><span className="text-slate-500">Name</span><span className="font-semibold text-slate-900">{user?.fullName || 'User'}</span></div>
+                      <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-slate-200"><span className="text-slate-500">Email</span><span className="font-semibold text-slate-900">{user?.email || '-'}</span></div>
+                      <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-slate-200"><span className="text-slate-500">Department</span><span className="font-semibold text-slate-900">{user?.companyName || 'Finance'}</span></div>
+                    </div>
+                  )}
+                </div>
+
+                <button onClick={handleLogout} className="w-full rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300 transition-all hover:bg-rose-500 hover:text-white hover:border-rose-400/40">
+                  Logout
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                  <h3 className="text-xl font-black text-slate-900">Change Password</h3>
+                  <p className="text-sm text-slate-500 mt-1">Update your login password securely.</p>
+                  <form onSubmit={handleChangePassword} className="mt-6 grid gap-4">
+                    <input type="password" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} placeholder="Current password" />
+                    <input type="password" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={passwordForm.newPassword} onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} placeholder="New password" />
+                    <input type="password" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} placeholder="Confirm new password" />
+                    <button type="submit" className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">Change Password</button>
+                  </form>
+                </div>
+
+                {settingsMessage && (
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                    {settingsMessage}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : selectedClientName ? (
             <>
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center gap-8 justify-between animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
@@ -451,6 +826,7 @@ export default function App() {
                 handleDelete={handleDelete} 
                 setSelectedInvoice={setSelectedInvoice} 
                 setIsDrawerOpen={setIsDrawerOpen} 
+                onRowClick={openClientDetails}
               />
             </>
           ) : currentView === 'solvable' ? (
@@ -462,6 +838,7 @@ export default function App() {
               handleDelete={handleDelete} 
               setSelectedInvoice={setSelectedInvoice} 
               setIsDrawerOpen={setIsDrawerOpen} 
+              onRowClick={openClientDetails}
             />
           ) : currentView === 'fidèle' ? (
             <FilteredClientList 
@@ -472,6 +849,7 @@ export default function App() {
               handleDelete={handleDelete} 
               setSelectedInvoice={setSelectedInvoice} 
               setIsDrawerOpen={setIsDrawerOpen} 
+              onRowClick={openClientDetails}
             />
           ) : currentView === 'insolvable' ? (
             <FilteredClientList 
@@ -482,6 +860,7 @@ export default function App() {
               handleDelete={handleDelete} 
               setSelectedInvoice={setSelectedInvoice} 
               setIsDrawerOpen={setIsDrawerOpen} 
+              onRowClick={openClientDetails}
             />
           ) : currentView === 'risks' ? (
             <>
@@ -504,6 +883,7 @@ export default function App() {
                 handleDelete={handleDelete} 
                 setSelectedInvoice={setSelectedInvoice} 
                 setIsDrawerOpen={setIsDrawerOpen} 
+                onRowClick={openClientDetails}
               />
             </>
           )}

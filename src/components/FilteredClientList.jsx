@@ -1,7 +1,10 @@
 import React from 'react';
-import { Edit2, Trash2, Receipt, AlertTriangle, CheckCircle2, Download } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Edit2, Trash2, Receipt, AlertTriangle, CheckCircle2, Download, Eye } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { toClientId } from '../utils/clientId';
+import { useClients } from '../context/ClientsContext';
 
 export default function FilteredClientList({
   status,
@@ -11,8 +14,23 @@ export default function FilteredClientList({
   openModal,
   handleDelete,
   setSelectedInvoice,
-  setIsDrawerOpen
+  setIsDrawerOpen,
+  onRowClick
 }) {
+  const navigate = useNavigate();
+  const { clients } = useClients();
+
+  const resolveClientId = (clientName) => {
+    const normalizedName = String(clientName || '').trim().toLowerCase();
+    const client = clients.find((entry) => {
+      const entryId = String(entry.id || '').trim();
+      const entryName = String(entry.name || '').trim().toLowerCase();
+      return entryId === normalizedName || entryName === normalizedName || toClientId(entry.name) === toClientId(clientName);
+    });
+
+    return client?.id || toClientId(clientName);
+  };
+
   const handleExportPDF = (inv) => {
     console.log('Generating invoice PDF for:', inv);
 
@@ -217,7 +235,11 @@ export default function FilteredClientList({
             {displayedInvoices.map((inv) => {
               const hasFlags = inv.flags && inv.flags.length > 0;
               return (
-                <tr key={inv.id} className="hover:bg-slate-50/80 transition-colors group">
+                <tr
+                  key={inv.id}
+                  className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                  onClick={() => onRowClick?.(toClientId(inv.clientName))}
+                >
                   <td className="px-6 py-4 font-bold text-slate-900">{inv.clientName}</td>
                   <td className="px-6 py-4 text-slate-600">{new Date(inv.date).toLocaleDateString()}</td>
                   <td className="px-6 py-4 font-bold text-indigo-600">
@@ -239,7 +261,8 @@ export default function FilteredClientList({
                     <td className="px-6 py-4 text-center">
                       {hasFlags ? (
                         <button 
-                          onClick={() => {
+                          onClick={(event) => {
+                            event.stopPropagation();
                             setSelectedInvoice(inv);
                             setIsDrawerOpen(true);
                           }}
@@ -257,22 +280,44 @@ export default function FilteredClientList({
                   )}
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          const clientId = resolveClientId(inv.clientName);
+                          onRowClick?.(clientId);
+                          navigate(`/clients/${clientId}`);
+                        }}
+                        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-indigo-700 hover:shadow-md hover:scale-[1.01] dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                        title="View Client"
+                      >
+                        <Eye size={14} />
+                        View
+                      </button>
                       <button 
-                        onClick={() => handleExportPDF(inv)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleExportPDF(inv);
+                        }}
                         className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border border-transparent hover:border-emerald-100"
                         title="Download PDF"
                       >
                         <Download size={16} />
                       </button>
                       <button 
-                        onClick={() => openModal(inv)} 
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openModal(inv);
+                        }} 
                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-100"
                         title="Edit Invoice"
                       >
                         <Edit2 size={16} />
                       </button>
                       <button 
-                        onClick={() => handleDelete(inv.id)} 
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDelete(inv.id);
+                        }} 
                         className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100"
                         title="Delete Invoice"
                       >
