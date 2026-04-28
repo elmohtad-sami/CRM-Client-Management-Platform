@@ -20,8 +20,8 @@ import { authApi } from './api/auth';
 
 export default function App() {
   const navigate = useNavigate();
-  const { role, currentUser: user, token, login, logout, setCurrentUser, isAuthenticated } = useUser();
-  const { invoices, setInvoices } = useClients();
+  const { role, currentUser: user, token, login, logout, isAuthenticated } = useUser();
+  const { clients, invoices, setInvoices, createInvoice, updateClientInvoice } = useClients();
 
   const normalizeClientStatus = (value) => {
     if (!value) return null;
@@ -67,6 +67,7 @@ export default function App() {
   const [profileForm, setProfileForm] = useState({ fullName: '', email: '', companyName: '', profileImage: '' });
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [settingsMessage, setSettingsMessage] = useState('');
+  const [invoiceError, setInvoiceError] = useState('');
 
   const [formData, setFormData] = useState({ clientName: '', clientStatus: 'Fidele', date: '', dueDate: '', amountHT: '', tva: '', paymentStatus: 'Pending', paymentDelay: '', paymentMethod: 'Bank Transfer', status: 'En attente' });
 
@@ -358,19 +359,26 @@ export default function App() {
     if (invoice) {
       setFormData({ clientStatus: 'Fidele', ...invoice });
       setEditingId(invoice.id);
+      setInvoiceError('');
     } else {
-      setFormData({ clientName: selectedClientName || '', clientStatus: 'Fidele', date: '', dueDate: '', amountHT: '', tva: '', paymentStatus: 'Pending', paymentDelay: 0, paymentMethod: 'Bank Transfer', status: 'En attente' });
+      const selectedClient = clients.find((client) => client.name === selectedClientName) || null;
+      setFormData({ clientId: selectedClient?._id || '', clientName: selectedClientName || '', clientStatus: 'Fidele', date: '', dueDate: '', amountHT: '', tva: '', paymentStatus: 'Pending', paymentDelay: 0, paymentMethod: 'Bank Transfer', status: 'En attente' });
       setEditingId(null);
+      setInvoiceError('');
     }
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const amountHT = Number(formData.amountHT);
     const tva = Number(formData.tva);
+    const resolvedClientName = String(formData.clientName || selectedClientName || '').trim();
+    const resolvedClientId = formData.clientId || clients.find((client) => client.name === resolvedClientName)?._id || '';
     const newInvoice = {
       ...formData,
+      clientId: resolvedClientId,
+      clientName: resolvedClientName,
       amountHT,
       tva,
       totalTTC: amountHT + tva,
@@ -379,13 +387,27 @@ export default function App() {
       status: formData.status || 'En attente'
     };
 
-    if (editingId) {
-      setInvoices(invoices.map(inv => inv.id === editingId ? { ...newInvoice, id: editingId } : inv));
-    } else {
-      setInvoices([{ ...newInvoice, id: Date.now().toString() }, ...invoices]);
+    try {
+      if (!newInvoice.clientName) {
+        throw new Error('Please enter a client name before saving the invoice.');
+      }
+
+      if (editingId) {
+        const clientId = newInvoice.clientId;
+        await updateClientInvoice(clientId, editingId, newInvoice);
+        setInvoices((current) => current.map((inv) => (inv.id === editingId ? { ...newInvoice, id: editingId } : inv)));
+      } else {
+        const createdClient = await createInvoice(newInvoice);
+        const createdInvoice = createdClient?.invoices?.[0] || { ...newInvoice, id: newInvoice.id || `${Date.now()}` };
+        setInvoices((current) => [createdInvoice, ...current.filter((inv) => inv.id !== createdInvoice.id)]);
+      }
+
+      setHasAudited(false);
+      setIsModalOpen(false);
+      setInvoiceError('');
+    } catch (error) {
+      setInvoiceError(error.message || 'Unable to save invoice.');
     }
-    setHasAudited(false);
-    setIsModalOpen(false);
   };
 
   const handleDelete = (id) => {
@@ -705,7 +727,7 @@ export default function App() {
           {currentView === 'client-details' ? (
             <ProtectedPermissionRoute action="view_clients">
               <ClientDetailsPage
-                clientId={clientDetailsId || '1'}
+                clientId={clientDetailsId || ''}
                 onBack={() => changeView('dashboard')}
                 onDelete={() => {
                   navigate('/');
@@ -901,6 +923,11 @@ export default function App() {
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-5">
+              {invoiceError && (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+                  {invoiceError}
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Client Name</label>
                 <input required type="text" className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} placeholder="e.g. Acme Corp" />

@@ -18,12 +18,12 @@ export default function ClientDetailsPage({ clientId, onBack }) {
   const { clients, updateClient, deleteClient, addNote, addDocument, updateClientInvoice } = useClients();
   const client = useMemo(() => {
     const normalizedRouteId = String(resolvedClientId).trim().toLowerCase();
-    const match = clients.find((entry) => String(entry.id || '').trim().toLowerCase() === normalizedRouteId || String(entry.name || '').trim().toLowerCase() === normalizedRouteId) || null;
+    const match = clients.find((entry) => String(entry._id || '').trim().toLowerCase() === normalizedRouteId) || null;
 
     console.log('ClientDetailsPage debug', {
       id: resolvedClientId,
       clientsLength: clients.length,
-      matchedClientId: match?.id || null
+      matchedClientId: match?._id || null
     });
 
     return match;
@@ -50,14 +50,14 @@ export default function ClientDetailsPage({ clientId, onBack }) {
   }
 
   const handleEditClient = () => {
-    updateClient(client.id, {
+    updateClient(client._id, {
       riskScore: Math.max(0, Math.min(100, Number(client.riskScore || 0) - 1)),
       delayDays: Number(client.delayDays || 0) + 1
     });
   };
 
   const handleAddNote = (content) => {
-    addNote(client.id, {
+    addNote(client._id, {
       id: `${Date.now()}`,
       content,
       date: new Date().toISOString(),
@@ -66,15 +66,15 @@ export default function ClientDetailsPage({ clientId, onBack }) {
   };
 
   const handleUploadDocument = (document) => {
-    addDocument(client.id, document);
+    addDocument(client._id, document);
   };
 
   const handleInvoiceStatusChange = (invoiceId, updates) => {
-    updateClientInvoice(client.id, invoiceId, updates);
+    updateClientInvoice(client._id, invoiceId, updates);
   };
 
   const handleDeleteClient = () => {
-    deleteClient(client.id);
+    deleteClient(client._id);
     onBack?.();
   };
 

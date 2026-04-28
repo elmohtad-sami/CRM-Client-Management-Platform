@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Edit2, Trash2, Receipt, AlertTriangle, CheckCircle2, Download, Eye } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { toClientId } from '../utils/clientId';
 import { useClients } from '../context/ClientsContext';
 
 export default function FilteredClientList({
@@ -23,12 +22,12 @@ export default function FilteredClientList({
   const resolveClientId = (clientName) => {
     const normalizedName = String(clientName || '').trim().toLowerCase();
     const client = clients.find((entry) => {
-      const entryId = String(entry.id || '').trim();
+      const entryId = String(entry._id || '').trim().toLowerCase();
       const entryName = String(entry.name || '').trim().toLowerCase();
-      return entryId === normalizedName || entryName === normalizedName || toClientId(entry.name) === toClientId(clientName);
+      return entryId === normalizedName || entryName === normalizedName;
     });
 
-    return client?.id || toClientId(clientName);
+    return client?._id || '';
   };
 
   const handleExportPDF = (inv) => {
@@ -238,7 +237,7 @@ export default function FilteredClientList({
                 <tr
                   key={inv.id}
                   className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
-                  onClick={() => onRowClick?.(toClientId(inv.clientName))}
+                  onClick={() => onRowClick?.(inv.clientId || resolveClientId(inv.clientName))}
                 >
                   <td className="px-6 py-4 font-bold text-slate-900">{inv.clientName}</td>
                   <td className="px-6 py-4 text-slate-600">{new Date(inv.date).toLocaleDateString()}</td>
@@ -283,7 +282,8 @@ export default function FilteredClientList({
                       <button
                         onClick={(event) => {
                           event.stopPropagation();
-                          const clientId = resolveClientId(inv.clientName);
+                          const clientId = inv.clientId || resolveClientId(inv.clientName);
+                          if (!clientId) return;
                           onRowClick?.(clientId);
                           navigate(`/clients/${clientId}`);
                         }}

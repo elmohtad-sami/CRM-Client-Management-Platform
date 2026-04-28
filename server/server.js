@@ -6,13 +6,16 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const { authenticateToken } = require('./middleware/authMiddleware');
+const errorHandler = require('./middleware/errorHandler');
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+let server;
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
   .split(',')
@@ -31,18 +34,39 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', authenticateToken, clientRoutes);
 
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(err.status || 500).json({
-    message: err.message || 'Internal Server Error'
-  });
-});
+app.use(errorHandler);
 
 const start = async () => {
   await connectDB();
-  app.listen(PORT, () => {
+  server = app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
+
+  server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} is already in use. Stop the other process or change PORT in server/.env.`);
+      process.exit(1);
+    }
+
+    console.error(error);
+    process.exit(1);
+  });
 };
+
+const shutdown = (signal) => {
+  if (!server) {
+    process.exit(0);
+    return;
+  }
+
+  server.close(() => {
+    console.log(`Server closed after ${signal}`);
+    process.exit(0);
+  });
+};
+
+process.once('SIGINT', () => shutdown('SIGINT'));
+process.once('SIGTERM', () => shutdown('SIGTERM'));
+process.once('SIGUSR2', () => shutdown('SIGUSR2'));
 
 start();

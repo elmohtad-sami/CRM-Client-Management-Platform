@@ -9,12 +9,11 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [readKeys, setReadKeys] = useState([]);
   const [pulse, setPulse] = useState(false);
+  const [now] = useState(() => Date.now());
   const rootRef = useRef(null);
   const previousCountRef = useRef(0);
 
   const notifications = useMemo(() => {
-    const now = Date.now();
-
     return invoices
       .filter((invoice) => {
         const dueDate = invoice?.dueDate ? new Date(invoice.dueDate).getTime() : NaN;
@@ -28,7 +27,7 @@ export default function NotificationBell() {
       })
       .map((invoice) => {
         const dueDate = new Date(invoice.dueDate);
-        const daysLeft = Math.max(1, Math.ceil((dueDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000)));
+        const daysLeft = Math.max(1, Math.ceil((dueDate.getTime() - now) / (24 * 60 * 60 * 1000)));
 
         return {
           key: `${invoice.id}-${invoice.status}-${invoice.dueDate}`,

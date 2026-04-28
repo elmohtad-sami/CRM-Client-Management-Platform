@@ -9,12 +9,13 @@ const Card = ({ label, value, tone }) => (
 
 export default function FinancialOverview({ client }) {
   const invoices = client.invoices || [];
+  const [now] = React.useState(() => Date.now());
   const totalRevenue = invoices.reduce((sum, invoice) => sum + Number(invoice.amount || invoice.amountHT || 0), 0);
   const paidAmount = invoices.reduce((sum, invoice) => sum + (String(invoice.status || invoice.paymentStatus) === 'Paid' ? Number(invoice.amount || invoice.amountHT || 0) : 0), 0);
   const outstandingAmount = invoices.reduce((sum, invoice) => sum + (String(invoice.status || invoice.paymentStatus) === 'Pending' ? Number(invoice.amount || invoice.amountHT || 0) : 0), 0);
   const delayDays = invoices.reduce((sum, invoice) => {
-    const dueDate = new Date(invoice.dueDate || invoice.date || Date.now());
-    const elapsedDays = Math.max(0, Math.floor((Date.now() - dueDate.getTime()) / (1000 * 60 * 60 * 24)));
+    const dueDate = new Date(invoice.dueDate || invoice.date || now);
+    const elapsedDays = Math.max(0, Math.floor((now - dueDate.getTime()) / (1000 * 60 * 60 * 24)));
     return sum + (String(invoice.status || invoice.paymentStatus) === 'Paid' ? 0 : elapsedDays);
   }, 0);
   const score = Math.max(0, Math.min(100, Math.round(Number(client.riskScore || 0) + (outstandingAmount > 0 ? 10 : 0) + (delayDays > 0 ? 5 : 0))));

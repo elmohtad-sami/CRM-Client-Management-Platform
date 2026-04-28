@@ -1,12 +1,37 @@
-import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import React, { useEffect, useRef, useState } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { DollarSign, ShieldAlert, Activity, Star, ShieldCheck } from 'lucide-react';
 import InvoiceCreator from './InvoiceCreator';
 import ReportDownloadButton from './ReportDownloadButton';
 import { useClients } from '../context/ClientsContext';
 
-export default function GlobalDashboardComponent({ stats, clientStatusCounts, monthlyRevenueData, changeView }) {
+export default function GlobalDashboardComponent({ monthlyRevenueData, changeView }) {
   const { clients } = useClients();
+  const chartContainerRef = useRef(null);
+  const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const container = chartContainerRef.current;
+    if (!container) return;
+
+    const updateSize = () => {
+      const { width, height } = container.getBoundingClientRect();
+      setChartSize({
+        width: Math.max(0, Math.floor(width)),
+        height: Math.max(0, Math.floor(height))
+      });
+    };
+
+    updateSize();
+
+    const resizeObserver = new ResizeObserver(updateSize);
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   const chartData = monthlyRevenueData?.length
     ? monthlyRevenueData
     : [
@@ -75,9 +100,9 @@ export default function GlobalDashboardComponent({ stats, clientStatusCounts, mo
               <p className="text-sm text-slate-500">Revenue performance in MAD</p>
             </div>
           </div>
-          <div className="h-80 min-h-80 w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <div ref={chartContainerRef} className="h-80 min-h-80 w-full min-w-0">
+            {chartSize.width > 0 && chartSize.height > 0 ? (
+              <BarChart width={chartSize.width} height={chartSize.height} data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} tickFormatter={(value) => `${value >= 1000 ? (value / 1000) + 'k' : value}`} />
@@ -95,7 +120,7 @@ export default function GlobalDashboardComponent({ stats, clientStatusCounts, mo
                 </defs>
                 <Bar dataKey="revenue" fill="url(#monthlyRevenueGradient)" radius={[5, 5, 0, 0]} barSize={46} />
               </BarChart>
-            </ResponsiveContainer>
+            ) : null}
           </div>
         </div>
 

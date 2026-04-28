@@ -28,11 +28,16 @@ const invoiceSchema = new mongoose.Schema(
     clientName: { type: String, required: true },
     amount: { type: Number, default: 0 },
     amountHT: { type: Number, default: 0 },
+    tva: { type: Number, default: 0 },
+    totalTTC: { type: Number, default: 0 },
+    paymentDelay: { type: Number, default: 0 },
     status: { type: String, default: 'Pending' },
+    paymentStatus: { type: String, default: 'Pending' },
     dueDate: { type: String, default: '' },
     reference: { type: String, default: '' },
     method: { type: String, default: 'Bank Transfer' },
-    date: { type: String, default: () => new Date().toISOString().slice(0, 10) }
+    date: { type: String, default: () => new Date().toISOString().slice(0, 10) },
+    flags: { type: [String], default: [] }
   },
   { _id: false }
 );

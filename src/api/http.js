@@ -1,9 +1,14 @@
+const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+export const API_BASE_URL = import.meta.env.DEV
+  ? ''
+  : (configuredBaseUrl ? configuredBaseUrl.replace(/\/$/, '') : '');
 
-
-export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ).replace(/\/$/, '');
+function buildApiUrl(path) {
+  return API_BASE_URL ? `${API_BASE_URL}/api${path}` : `/api${path}`;
+}
 
 export async function request(path, { method = 'GET', body, token } = {}) {
-  const response = await fetch(new URL(`/api${path}`, API_BASE_URL), {
+  const response = await fetch(buildApiUrl(path), {
     method,
     headers: {
       ...(body ? { 'Content-Type': 'application/json' } : {}),

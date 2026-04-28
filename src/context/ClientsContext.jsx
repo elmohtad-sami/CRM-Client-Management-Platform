@@ -12,10 +12,18 @@ const createActivity = (title, description) => ({
   description
 });
 
-const normalizeInvoice = (invoice, clientName) => ({
+const getClientIdValue = (client) => String(client?._id || client?.id || '').trim();
+
+const normalizeInvoice = (invoice, clientRef) => {
+  const fallbackClientName = typeof clientRef === 'string'
+    ? clientRef
+    : (clientRef?.name || clientRef?.company || '');
+  const fallbackClientId = typeof clientRef === 'string' ? '' : getClientIdValue(clientRef);
+
+  return {
   id: invoice.id || `${Date.now()}`,
-  clientId: invoice.clientId || toClientId(clientName),
-  clientName: invoice.clientName || clientName,
+  clientId: invoice.clientId || fallbackClientId,
+  clientName: invoice.clientName || fallbackClientName,
   amount: Number(invoice.amount ?? invoice.amountHT ?? 0),
   amountHT: Number(invoice.amountHT ?? invoice.amount ?? 0),
   status: invoice.status || invoice.paymentStatus || 'Pending',
@@ -23,7 +31,8 @@ const normalizeInvoice = (invoice, clientName) => ({
   reference: invoice.reference || invoice.id || `INV-${Date.now()}`,
   method: invoice.method || invoice.paymentMethod || 'Bank Transfer',
   date: invoice.date || new Date().toISOString().slice(0, 10)
-});
+  };
+};
 
 const initialClients = [
   {
@@ -153,20 +162,23 @@ const initialClients = [
 
 const cloneClients = () => initialClients.map((client) => ({
   ...client,
+  _id: client._id || client.id,
   notes: [...(client.notes || [])],
   documents: [...(client.documents || [])],
   activities: [...(client.activities || [])],
   payments: [...(client.payments || [])],
-  invoices: [...(client.payments || []).map((invoice) => normalizeInvoice(invoice, client.name))]
+  invoices: [...(client.payments || []).map((invoice) => normalizeInvoice(invoice, client))]
 }));
 
 const normalizeClient = (client = {}) => {
   const name = client.name || client.company || 'New Client';
+  const clientId = String(client._id || client.id || toClientId(name));
   const normalizedInvoices = (client.invoices && client.invoices.length > 0 ? client.invoices : client.payments || [])
-    .map((invoice) => normalizeInvoice(invoice, name));
+    .map((invoice) => normalizeInvoice(invoice, { ...client, _id: clientId, name }));
 
   return {
-    id: client.id || toClientId(name),
+    _id: clientId,
+    id: client.id || clientId,
     name,
     company: client.company || name,
     status: client.status || 'Solvable',
@@ -189,6 +201,18 @@ const normalizeClient = (client = {}) => {
   };
 };
 
+const normalizeKey = (value) => String(value || '').trim().toLowerCase();
+
+const resolveClientRecord = (clients, clientInput) => {
+  const normalizedInput = normalizeKey(clientInput?._id || clientInput?.id || clientInput?.clientId || clientInput?.clientName || clientInput?.name || clientInput);
+
+  return clients.find((client) => {
+    const clientId = normalizeKey(getClientIdValue(client));
+    const clientName = normalizeKey(client.name);
+    return clientId === normalizedInput || clientName === normalizedInput || toClientId(client.name) === normalizedInput;
+  }) || null;
+};
+
 export function ClientsProvider({ children }) {
   const { currentUser, token } = useUser();
   const [clients, setClients] = useState(() => cloneClients());
@@ -196,7 +220,7 @@ export function ClientsProvider({ children }) {
 
   useEffect(() => {
     if (!currentUser?.email || typeof window === 'undefined') {
-      setInvoices([]);
+      window.setTimeout(() => setInvoices([]), 0);
       return;
     }
 
@@ -206,7 +230,7 @@ export function ClientsProvider({ children }) {
 
   useEffect(() => {
     if (!token) {
-      setClients(cloneClients());
+      window.setTimeout(() => setClients(cloneClients()), 0);
       return;
     }
 
@@ -235,13 +259,13 @@ export function ClientsProvider({ children }) {
       const linkedInvoices = invoices.filter((invoice) => {
         const invoiceClientId = String(invoice.clientId || '').trim().toLowerCase();
         const invoiceClientName = String(invoice.clientName || '').trim().toLowerCase();
-        const clientId = String(client.id || '').trim().toLowerCase();
+        const clientId = getClientIdValue(client).toLowerCase();
         const clientName = String(client.name || '').trim().toLowerCase();
         return invoiceClientId === clientId || invoiceClientName === clientName || toClientId(invoice.clientName) === clientId;
       });
 
-      const fallbackInvoices = (client.invoices && client.invoices.length > 0 ? client.invoices : client.payments || []).map((invoice) => normalizeInvoice(invoice, client.name));
-      const resolvedInvoices = linkedInvoices.length > 0 ? linkedInvoices.map((invoice) => normalizeInvoice(invoice, client.name)) : fallbackInvoices;
+      const fallbackInvoices = (client.invoices && client.invoices.length > 0 ? client.invoices : client.payments || []).map((invoice) => normalizeInvoice(invoice, client));
+      const resolvedInvoices = linkedInvoices.length > 0 ? linkedInvoices.map((invoice) => normalizeInvoice(invoice, client)) : fallbackInvoices;
 
       return {
         ...client,
@@ -253,13 +277,22 @@ export function ClientsProvider({ children }) {
 
   const replaceClient = (updatedClient) => {
     const normalized = normalizeClient(updatedClient);
-    setClients((current) => current.map((client) => (String(client.id) === String(normalized.id) ? normalized : client)));
+    setClients((current) => {
+      const normalizedClientId = getClientIdValue(normalized);
+      const existingIndex = current.findIndex((client) => getClientIdValue(client) === normalizedClientId);
+
+      if (existingIndex === -1) {
+        return [...current, normalized];
+      }
+
+      return current.map((client) => (getClientIdValue(client) === normalizedClientId ? normalized : client));
+    });
   };
 
   const addClient = (client) => {
     const optimisticClient = normalizeClient({
       ...client,
-      id: client.id || toClientId(client.name || client.company || `client-${Date.now()}`)
+      _id: client._id || client.id || toClientId(client.name || client.company || `client-${Date.now()}`)
     });
 
     setClients((current) => [...current, optimisticClient]);
@@ -273,18 +306,18 @@ export function ClientsProvider({ children }) {
       }
     })();
 
-    return optimisticClient.id;
+    return optimisticClient._id;
   };
 
   const updateClient = (clientId, updates) => {
     setClients((current) => current.map((client) => {
-      if (String(client.id) !== String(clientId)) return client;
+      if (getClientIdValue(client) !== String(clientId)) return client;
       const hasMeaningfulUpdates = Object.keys(updates || {}).length > 0;
       return {
         ...client,
         ...updates,
-        invoices: updates.invoices ? updates.invoices.map((invoice) => normalizeInvoice(invoice, updates.name || client.name)) : client.invoices,
-        payments: updates.invoices ? updates.invoices.map((invoice) => normalizeInvoice(invoice, updates.name || client.name)) : client.payments,
+        invoices: updates.invoices ? updates.invoices.map((invoice) => normalizeInvoice(invoice, client)) : client.invoices,
+        payments: updates.invoices ? updates.invoices.map((invoice) => normalizeInvoice(invoice, client)) : client.payments,
         activities: hasMeaningfulUpdates
           ? [createActivity('Client edited', `Profile updated for ${updates.name || client.name}`), ...(client.activities || [])]
           : client.activities
@@ -302,7 +335,7 @@ export function ClientsProvider({ children }) {
   };
 
   const deleteClient = (clientId) => {
-    setClients((current) => current.filter((client) => client.id !== clientId));
+    setClients((current) => current.filter((client) => getClientIdValue(client) !== String(clientId)));
 
     void (async () => {
       try {
@@ -331,7 +364,7 @@ export function ClientsProvider({ children }) {
         };
 
     setClients((current) => current.map((client) => {
-      if (String(client.id) !== String(clientId)) return client;
+      if (getClientIdValue(client) !== String(clientId)) return client;
       const activity = createActivity('Note added', noteEntry.content || noteEntry.text || 'New note added');
       return {
         ...client,
@@ -359,7 +392,7 @@ export function ClientsProvider({ children }) {
     };
 
     setClients((current) => current.map((client) => {
-      if (String(client.id) !== String(clientId)) return client;
+      if (getClientIdValue(client) !== String(clientId)) return client;
       const activity = createActivity('Document uploaded', documentEntry.name);
       return {
         ...client,
@@ -378,6 +411,52 @@ export function ClientsProvider({ children }) {
     })();
   };
 
+  const createInvoice = (invoice) => {
+    const clientRecord = resolveClientRecord(clients, invoice);
+    const clientName = String(invoice.clientName || invoice.clientId || clientRecord?.name || '').trim();
+    const clientId = String(invoice.clientId || getClientIdValue(clientRecord) || toClientId(clientName)).trim();
+
+    if (!clientName) {
+      return Promise.reject(new Error('Client name is required to create an invoice.'));
+    }
+
+    const invoicePayload = {
+      ...invoice,
+      id: invoice.id || `${Date.now()}`,
+      clientId: clientId || toClientId(clientName),
+      clientName,
+      amount: Number(invoice.amount ?? invoice.amountHT ?? 0),
+      amountHT: Number(invoice.amountHT ?? invoice.amount ?? 0),
+      tva: Number(invoice.tva ?? 0),
+      totalTTC: Number(invoice.totalTTC ?? ((Number(invoice.amountHT ?? invoice.amount ?? 0)) + Number(invoice.tva ?? 0))),
+      paymentDelay: Number(invoice.paymentDelay ?? 0),
+      status: invoice.status || invoice.paymentStatus || 'Pending',
+      paymentStatus: invoice.paymentStatus || invoice.status || 'Pending',
+      dueDate: invoice.dueDate || '',
+      reference: invoice.reference || invoice.invoiceNumber || `INV-${Date.now()}`,
+      method: invoice.method || invoice.paymentMethod || 'Bank Transfer',
+      date: invoice.date || new Date().toISOString().slice(0, 10),
+      flags: Array.isArray(invoice.flags) ? invoice.flags : []
+    };
+
+    return clientsApi.createInvoice(clientId || toClientId(clientName), invoicePayload, token)
+      .then((createdClient) => {
+        replaceClient(createdClient);
+
+        const normalizedCreatedInvoices = (createdClient.invoices || []).map((entry) => normalizeInvoice(entry, createdClient.name));
+        setInvoices((current) => {
+          const otherInvoices = current.filter((entry) => String(entry.clientId || '').trim().toLowerCase() !== String(clientId).trim().toLowerCase());
+          return [...normalizedCreatedInvoices, ...otherInvoices];
+        });
+
+        return createdClient;
+      })
+      .catch((error) => {
+        console.error('Failed to persist invoice creation.', error);
+        throw error;
+      });
+  };
+
   const updateClientInvoice = (clientId, invoiceId, updates) => {
     const normalizedUpdates = {
       ...updates,
@@ -388,10 +467,10 @@ export function ClientsProvider({ children }) {
     };
 
     setClients((current) => current.map((client) => {
-      if (String(client.id) !== String(clientId)) return client;
+      if (getClientIdValue(client) !== String(clientId)) return client;
       const nextInvoices = (client.invoices || []).map((invoice) => {
         if (String(invoice.id) !== String(invoiceId)) return invoice;
-        return normalizeInvoice({ ...invoice, ...normalizedUpdates }, client.name);
+        return normalizeInvoice({ ...invoice, ...normalizedUpdates }, client);
       });
       const activity = createActivity('Invoice updated', `Invoice ${invoiceId} status changed to ${normalizedUpdates.status || 'Updated'}`);
       return {
@@ -427,22 +506,23 @@ export function ClientsProvider({ children }) {
     })();
   };
 
-  const value = useMemo(() => ({
+  const value = {
     clients: clientsWithInvoices,
     clientMap: clientsWithInvoices.reduce((acc, client) => {
-      acc[client.id] = client;
+      acc[getClientIdValue(client)] = client;
       return acc;
     }, {}),
     invoices,
     setInvoices,
     addClient,
+    createInvoice,
     updateClient,
     deleteClient,
     addNote,
     addDocument,
     updateClientInvoice,
-    getClientById: (clientId) => clientsWithInvoices.find((client) => String(client.id) === String(clientId)) || null
-  }), [clientsWithInvoices, invoices]);
+    getClientById: (clientId) => clientsWithInvoices.find((client) => getClientIdValue(client) === String(clientId)) || null
+  };
 
   return <ClientsContext.Provider value={value}>{children}</ClientsContext.Provider>;
 }
