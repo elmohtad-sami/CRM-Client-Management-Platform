@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { toClientId } from '../utils/clientId';
 import { useUser } from './UserContext';
 import { clientsApi } from '../api/clients';
@@ -21,16 +21,17 @@ const normalizeInvoice = (invoice, clientRef) => {
   const fallbackClientId = typeof clientRef === 'string' ? '' : getClientIdValue(clientRef);
 
   return {
-  id: invoice.id || `${Date.now()}`,
-  clientId: invoice.clientId || fallbackClientId,
-  clientName: invoice.clientName || fallbackClientName,
-  amount: Number(invoice.amount ?? invoice.amountHT ?? 0),
-  amountHT: Number(invoice.amountHT ?? invoice.amount ?? 0),
-  status: invoice.status || invoice.paymentStatus || 'Pending',
-  dueDate: invoice.dueDate || invoice.date || new Date().toISOString().slice(0, 10),
-  reference: invoice.reference || invoice.id || `INV-${Date.now()}`,
-  method: invoice.method || invoice.paymentMethod || 'Bank Transfer',
-  date: invoice.date || new Date().toISOString().slice(0, 10)
+    clientStatus: invoice.clientStatus || clientRef?.status || invoice.status || 'Solvable',
+    id: invoice.id || `${Date.now()}`,
+    clientId: invoice.clientId || fallbackClientId,
+    clientName: invoice.clientName || fallbackClientName,
+    amount: Number(invoice.amount ?? invoice.amountHT ?? 0),
+    amountHT: Number(invoice.amountHT ?? invoice.amount ?? 0),
+    status: invoice.status || invoice.paymentStatus || 'Pending',
+    dueDate: invoice.dueDate || invoice.date || new Date().toISOString().slice(0, 10),
+    reference: invoice.reference || invoice.id || `INV-${Date.now()}`,
+    method: invoice.method || invoice.paymentMethod || 'Bank Transfer',
+    date: invoice.date || new Date().toISOString().slice(0, 10)
   };
 };
 
@@ -218,6 +219,24 @@ export function ClientsProvider({ children }) {
   const [clients, setClients] = useState(() => cloneClients());
   const [invoices, setInvoices] = useState([]);
 
+  const loadClientsFromApi = useCallback(async (authToken) => {
+    if (!authToken) {
+      return null;
+    }
+
+    try {
+      const payload = await clientsApi.list(authToken);
+      if (Array.isArray(payload)) {
+        setClients(payload.map((client) => normalizeClient(client)));
+        return payload;
+      }
+    } catch (error) {
+      console.error('Failed to load clients from API, using local seed data.', error);
+    }
+
+    return null;
+  }, []);
+
   useEffect(() => {
     if (!currentUser?.email || typeof window === 'undefined') {
       window.setTimeout(() => setInvoices([]), 0);
@@ -225,7 +244,7 @@ export function ClientsProvider({ children }) {
     }
 
     const saved = localStorage.getItem(`finance_crm_data_${currentUser.email}`);
-    setInvoices(saved ? JSON.parse(saved) : []);
+    window.setTimeout(() => setInvoices(saved ? JSON.parse(saved) : []), 0);
   }, [currentUser?.email]);
 
   useEffect(() => {
@@ -234,25 +253,12 @@ export function ClientsProvider({ children }) {
       return;
     }
 
-    let isCancelled = false;
+    const timeoutId = window.setTimeout(() => {
+      void loadClientsFromApi(token);
+    }, 0);
 
-    const loadClients = async () => {
-      try {
-        const payload = await clientsApi.list(token);
-        if (!isCancelled && Array.isArray(payload)) {
-          setClients(payload.map((client) => normalizeClient(client)));
-        }
-      } catch (error) {
-        console.error('Failed to load clients from API, using local seed data.', error);
-      }
-    };
-
-    void loadClients();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [token]);
+    return () => window.clearTimeout(timeoutId);
+  }, [loadClientsFromApi, token]);
 
   const clientsWithInvoices = useMemo(() => {
     return clients.map((client) => {
@@ -301,6 +307,7 @@ export function ClientsProvider({ children }) {
       try {
         const createdClient = await clientsApi.create(optimisticClient, token);
         replaceClient(createdClient);
+        void loadClientsFromApi(token);
       } catch (error) {
         console.error('Failed to persist client creation.', error);
       }
@@ -328,6 +335,7 @@ export function ClientsProvider({ children }) {
       try {
         const updatedClient = await clientsApi.update(clientId, updates, token);
         replaceClient(updatedClient);
+        void loadClientsFromApi(token);
       } catch (error) {
         console.error('Failed to persist client update.', error);
       }
@@ -340,6 +348,7 @@ export function ClientsProvider({ children }) {
     void (async () => {
       try {
         await clientsApi.remove(clientId, token);
+        void loadClientsFromApi(token);
       } catch (error) {
         console.error('Failed to persist client deletion.', error);
       }
@@ -377,6 +386,7 @@ export function ClientsProvider({ children }) {
       try {
         const updatedClient = await clientsApi.addNote(clientId, noteEntry, token);
         replaceClient(updatedClient);
+        void loadClientsFromApi(token);
       } catch (error) {
         console.error('Failed to persist note.', error);
       }
@@ -405,11 +415,94 @@ export function ClientsProvider({ children }) {
       try {
         const updatedClient = await clientsApi.addDocument(clientId, documentEntry, token);
         replaceClient(updatedClient);
+        void loadClientsFromApi(token);
       } catch (error) {
         console.error('Failed to persist document.', error);
       }
     })();
   };
+
+    const updateNote = (clientId, noteId, updates) => {
+      setClients((current) => current.map((client) => {
+        if (getClientIdValue(client) !== String(clientId)) return client;
+        return {
+          ...client,
+          notes: (client.notes || []).map((note) => (String(note.id) === String(noteId) ? { ...note, ...updates } : note)),
+          activities: [createActivity('Note updated', updates.content || updates.text || 'Note edited'), ...(client.activities || [])]
+        };
+      }));
+
+      void (async () => {
+        try {
+          const updatedClient = await clientsApi.updateNote(clientId, noteId, updates, token);
+          replaceClient(updatedClient);
+          void loadClientsFromApi(token);
+        } catch (error) {
+          console.error('Failed to persist note update.', error);
+        }
+      })();
+    };
+
+    const deleteNote = (clientId, noteId) => {
+      setClients((current) => current.map((client) => {
+        if (getClientIdValue(client) !== String(clientId)) return client;
+        return {
+          ...client,
+          notes: (client.notes || []).filter((note) => String(note.id) !== String(noteId)),
+          activities: [createActivity('Note deleted', 'A note was removed'), ...(client.activities || [])]
+        };
+      }));
+
+      void (async () => {
+        try {
+          const updatedClient = await clientsApi.deleteNote(clientId, noteId, token);
+          replaceClient(updatedClient);
+          void loadClientsFromApi(token);
+        } catch (error) {
+          console.error('Failed to persist note deletion.', error);
+        }
+      })();
+    };
+
+    const updateActivity = (clientId, activityId, updates) => {
+      setClients((current) => current.map((client) => {
+        if (getClientIdValue(client) !== String(clientId)) return client;
+        return {
+          ...client,
+          activities: (client.activities || []).map((activity) => (String(activity.id) === String(activityId) ? { ...activity, ...updates } : activity))
+        };
+      }));
+
+      void (async () => {
+        try {
+          const updatedClient = await clientsApi.updateActivity(clientId, activityId, updates, token);
+          replaceClient(updatedClient);
+          void loadClientsFromApi(token);
+        } catch (error) {
+          console.error('Failed to persist activity update.', error);
+        }
+      })();
+    };
+
+    const deleteActivity = (clientId, activityId) => {
+      setClients((current) => current.map((client) => {
+        if (getClientIdValue(client) !== String(clientId)) return client;
+        return {
+          ...client,
+          activities: (client.activities || []).filter((activity) => String(activity.id) !== String(activityId))
+        };
+      }));
+
+      void (async () => {
+        try {
+          const updatedClient = await clientsApi.deleteActivity(clientId, activityId, token);
+          replaceClient(updatedClient);
+          void loadClientsFromApi(token);
+        } catch (error) {
+          console.error('Failed to persist activity deletion.', error);
+        }
+      })();
+    };
 
   const createInvoice = (invoice) => {
     const clientRecord = resolveClientRecord(clients, invoice);
@@ -442,6 +535,7 @@ export function ClientsProvider({ children }) {
     return clientsApi.createInvoice(clientId || toClientId(clientName), invoicePayload, token)
       .then((createdClient) => {
         replaceClient(createdClient);
+        void loadClientsFromApi(token);
 
         const normalizedCreatedInvoices = (createdClient.invoices || []).map((entry) => normalizeInvoice(entry, createdClient.name));
         setInvoices((current) => {
@@ -520,7 +614,12 @@ export function ClientsProvider({ children }) {
     deleteClient,
     addNote,
     addDocument,
+    updateNote,
+    deleteNote,
+    updateActivity,
+    deleteActivity,
     updateClientInvoice,
+    refreshClients: loadClientsFromApi,
     getClientById: (clientId) => clientsWithInvoices.find((client) => getClientIdValue(client) === String(clientId)) || null
   };
 

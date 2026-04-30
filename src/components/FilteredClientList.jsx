@@ -233,6 +233,7 @@ export default function FilteredClientList({
           <tbody className="divide-y divide-slate-100">
             {displayedInvoices.map((inv) => {
               const hasFlags = inv.flags && inv.flags.length > 0;
+              const isClientSummaryRow = inv.sourceType === 'client';
               return (
                 <tr
                   key={inv.id}
@@ -293,36 +294,40 @@ export default function FilteredClientList({
                         <Eye size={14} />
                         View
                       </button>
-                      <button 
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleExportPDF(inv);
-                        }}
-                        className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border border-transparent hover:border-emerald-100"
-                        title="Download PDF"
-                      >
-                        <Download size={16} />
-                      </button>
-                      <button 
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          openModal(inv);
-                        }} 
-                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-100"
-                        title="Edit Invoice"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button 
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleDelete(inv.id);
-                        }} 
-                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100"
-                        title="Delete Invoice"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {!isClientSummaryRow && (
+                        <>
+                          <button 
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleExportPDF(inv);
+                            }}
+                            className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border border-transparent hover:border-emerald-100"
+                            title="Download PDF"
+                          >
+                            <Download size={16} />
+                          </button>
+                          <button 
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              openModal(inv);
+                            }} 
+                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors border border-transparent hover:border-indigo-100"
+                            title="Edit Invoice"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button 
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleDelete(inv.id);
+                            }} 
+                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors border border-transparent hover:border-rose-100"
+                            title="Delete Invoice"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

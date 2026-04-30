@@ -29,6 +29,7 @@ const invoiceSchema = new mongoose.Schema(
     amount: { type: Number, default: 0 },
     amountHT: { type: Number, default: 0 },
     tva: { type: Number, default: 0 },
+    clientStatus: { type: String, default: 'Solvable' },
     totalTTC: { type: Number, default: 0 },
     paymentDelay: { type: Number, default: 0 },
     status: { type: String, default: 'Pending' },
@@ -54,7 +55,15 @@ const activitySchema = new mongoose.Schema(
 
 const clientSchema = new mongoose.Schema(
   {
-    id: { type: String, required: true, unique: true, index: true },
+    // ✅ NEW: Add userId field to link client to owner
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true // Important: Index for fast filtering by userId
+    },
+
+    id: { type: String, required: true, index: true },
     name: { type: String, required: true },
     company: { type: String, default: '' },
     status: { type: String, default: 'Solvable' },
@@ -76,5 +85,9 @@ const clientSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// ✅ IMPORTANT: Compound unique index to prevent duplicate client IDs per user
+clientSchema.index({ userId: 1, id: 1 }, { unique: true });
+clientSchema.index({ userId: 1, name: 1 });
 
 module.exports = mongoose.model('Client', clientSchema);

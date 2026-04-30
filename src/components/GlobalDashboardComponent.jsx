@@ -5,8 +5,8 @@ import InvoiceCreator from './InvoiceCreator';
 import ReportDownloadButton from './ReportDownloadButton';
 import { useClients } from '../context/ClientsContext';
 
-export default function GlobalDashboardComponent({ monthlyRevenueData, changeView }) {
-  const { clients } = useClients();
+export default function GlobalDashboardComponent({ stats, monthlyRevenueData, changeView }) {
+  const { clients, invoices } = useClients();
   const chartContainerRef = useRef(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
 
@@ -44,11 +44,11 @@ export default function GlobalDashboardComponent({ monthlyRevenueData, changeVie
   const solvableClients = clients.filter((client) => client.status === 'Solvable').length;
   const fideleClients = clients.filter((client) => client.status === 'Fidèle').length;
   const insolvableClients = clients.filter((client) => client.status === 'Insolvable').length;
-  const totalRevenue = clients.reduce((sum, client) => sum + Number(client.totalRevenue || 0), 0);
+  const totalRevenue = stats?.totalRevenue ?? invoices.reduce((sum, inv) => sum + Number(inv.totalTTC ?? inv.amountHT ?? inv.amount ?? 0), 0);
   const riskThreshold = 70;
-  const totalRisks = clients.filter((client) => Number(client.riskScore || 0) > riskThreshold).length;
+  const totalRisks = stats?.totalRisks ?? clients.filter((client) => Number(client.riskScore || 0) > riskThreshold).length;
   const totalAssessed = solvableClients + insolvableClients;
-  const solvabilityRate = totalAssessed > 0 ? Math.round((solvableClients / totalAssessed) * 100) : 0;
+  const solvabilityRate = stats?.solvabilityRate ?? (totalAssessed > 0 ? Math.round((solvableClients / totalAssessed) * 100) : 0);
 
   return (
     <div id="dashboard-content" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

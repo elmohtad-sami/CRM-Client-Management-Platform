@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Bell } from 'lucide-react';
 import { useClients } from '../context/ClientsContext';
 
@@ -13,50 +13,49 @@ export default function NotificationBell() {
   const rootRef = useRef(null);
   const previousCountRef = useRef(0);
 
-  const notifications = useMemo(() => {
-    return invoices
-      .filter((invoice) => {
-        const dueDate = invoice?.dueDate ? new Date(invoice.dueDate).getTime() : NaN;
-        if (Number.isNaN(dueDate)) return false;
+  const notifications = invoices
+    .filter((invoice) => {
+      const dueDate = invoice?.dueDate ? new Date(invoice.dueDate).getTime() : NaN;
+      if (Number.isNaN(dueDate)) return false;
 
-        const pending = invoice.status === 'Pending' || invoice.status === 'En attente' || invoice.paymentStatus === 'Pending';
-        const paid = invoice.status === 'Paid' || invoice.status === 'Payée' || invoice.paymentStatus === 'Paid';
-        const diff = dueDate - now;
+      const pending = invoice.status === 'Pending' || invoice.status === 'En attente' || invoice.paymentStatus === 'Pending';
+      const paid = invoice.status === 'Paid' || invoice.status === 'Payée' || invoice.paymentStatus === 'Paid';
+      const diff = dueDate - now;
 
-        return pending && !paid && diff >= 0 && diff <= WINDOW_MS;
-      })
-      .map((invoice) => {
-        const dueDate = new Date(invoice.dueDate);
-        const daysLeft = Math.max(1, Math.ceil((dueDate.getTime() - now) / (24 * 60 * 60 * 1000)));
+      return pending && !paid && diff >= 0 && diff <= WINDOW_MS;
+    })
+    .map((invoice) => {
+      const dueDate = new Date(invoice.dueDate);
+      const daysLeft = Math.max(1, Math.ceil((dueDate.getTime() - now) / (24 * 60 * 60 * 1000)));
 
-        return {
-          key: `${invoice.id}-${invoice.status}-${invoice.dueDate}`,
-          clientName: invoice.clientName,
-          invoiceId: invoice.id,
-          dueDateValue: dueDate.getTime(),
-          dueDateLabel: dueDate.toLocaleDateString(),
-          message: `Invoice due in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`
-        };
-      })
-      .sort((left, right) => left.dueDateValue - right.dueDateValue);
-  }, [invoices]);
+      return {
+        key: `${invoice.id}-${invoice.status}-${invoice.dueDate}`,
+        clientName: invoice.clientName,
+        invoiceId: invoice.id,
+        dueDateValue: dueDate.getTime(),
+        dueDateLabel: dueDate.toLocaleDateString(),
+        message: `Invoice due in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`
+      };
+    })
+    .sort((left, right) => left.dueDateValue - right.dueDateValue);
 
   const unreadNotifications = notifications.filter((notification) => !readKeys.includes(notification.key));
   const unreadCount = unreadNotifications.length;
 
   useEffect(() => {
     if (unreadCount > previousCountRef.current) {
-      setPulse(true);
-      const timeoutId = window.setTimeout(() => setPulse(false), 900);
-      return () => window.clearTimeout(timeoutId);
+      const startId = window.setTimeout(() => setPulse(true), 0);
+      const stopId = window.setTimeout(() => setPulse(false), 900);
+      previousCountRef.current = unreadCount;
+
+      return () => {
+        window.clearTimeout(startId);
+        window.clearTimeout(stopId);
+      };
     }
 
     previousCountRef.current = unreadCount;
     return undefined;
-  }, [unreadCount]);
-
-  useEffect(() => {
-    previousCountRef.current = unreadCount;
   }, [unreadCount]);
 
   useEffect(() => {

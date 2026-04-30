@@ -14,8 +14,8 @@ import { useClients } from '../../context/ClientsContext';
 export default function ClientDetailsPage({ clientId, onBack }) {
   const { id } = useParams();
   const resolvedClientId = String(id || clientId || '');
-  const { role, currentUser } = useUser();
-  const { clients, updateClient, deleteClient, addNote, addDocument, updateClientInvoice } = useClients();
+  const { role } = useUser();
+  const { clients, updateClient, deleteClient, addDocument, updateClientInvoice } = useClients();
   const client = useMemo(() => {
     const normalizedRouteId = String(resolvedClientId).trim().toLowerCase();
     const match = clients.find((entry) => String(entry._id || '').trim().toLowerCase() === normalizedRouteId) || null;
@@ -28,6 +28,7 @@ export default function ClientDetailsPage({ clientId, onBack }) {
 
     return match;
   }, [resolvedClientId, clients]);
+
   const canEditClient = hasPermission(role, 'edit_client');
   const canDeleteClient = hasPermission(role, 'delete_client');
   const canAddNotes = hasPermission(role, 'add_notes');
@@ -56,15 +57,6 @@ export default function ClientDetailsPage({ clientId, onBack }) {
     });
   };
 
-  const handleAddNote = (content) => {
-    addNote(client._id, {
-      id: `${Date.now()}`,
-      content,
-      date: new Date().toISOString(),
-      author: currentUser?.name || currentUser?.fullName || 'Current User'
-    });
-  };
-
   const handleUploadDocument = (document) => {
     addDocument(client._id, document);
   };
@@ -89,6 +81,34 @@ export default function ClientDetailsPage({ clientId, onBack }) {
         canDelete={canDeleteClient}
       />
 
+      <div className="rounded-2xl border border-slate-200 bg-white px-6 py-4 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm font-medium text-slate-600">
+            Use the edit and delete actions below to manage this client record. Activity Timeline is read-only.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {canEditClient && (
+              <button
+                type="button"
+                onClick={handleEditClient}
+                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+              >
+                Edit Client
+              </button>
+            )}
+            {canDeleteClient && (
+              <button
+                type="button"
+                onClick={handleDeleteClient}
+                className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-100 transition-colors"
+              >
+                Delete Client
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-6 xl:grid-cols-2">
         <GeneralInfoCard client={client} />
         <FinancialOverview client={client} />
@@ -97,11 +117,11 @@ export default function ClientDetailsPage({ clientId, onBack }) {
       <PaymentHistoryTable payments={client.invoices || client.payments || []} onStatusChange={handleInvoiceStatusChange} />
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <NotesSection notes={client.notes || []} onAdd={handleAddNote} canAdd={canAddNotes} />
+        <NotesSection clientId={client._id} notes={client.notes || []} canAdd={canAddNotes} />
         <DocumentsSection documents={client.documents || []} canUpload={canUploadDocuments} onUpload={handleUploadDocument} />
       </div>
 
-      <ActivityTimeline activities={client.activities || []} />
+      <ActivityTimeline clientId={client._id} activities={client.activities || []} />
     </div>
   );
 }

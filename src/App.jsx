@@ -13,6 +13,10 @@ import AddRiskForm from './components/AddRiskForm';
 import RiskAnomaliesList from './components/RiskAnomaliesList';
 import ClientDetailsPage from './components/client-details/ClientDetailsPage';
 import ProtectedPermissionRoute from './components/ProtectedPermissionRoute';
+import SettingsView from './components/SettingsView';
+import ClientManagementView from './components/ClientManagementView';
+import InvoiceModal from './components/InvoiceModal';
+import AuditDrawer from './components/AuditDrawer';
 import { useUser } from './context/UserContext';
 import { useClients } from './context/ClientsContext';
 import NotificationBell from './components/NotificationBell';
@@ -21,7 +25,7 @@ import { authApi } from './api/auth';
 export default function App() {
   const navigate = useNavigate();
   const { role, currentUser: user, token, login, logout, isAuthenticated } = useUser();
-  const { clients, invoices, setInvoices, createInvoice, updateClientInvoice } = useClients();
+  const { clients, invoices, setInvoices, createInvoice, updateClientInvoice, addClient, updateClient, deleteClient } = useClients();
 
   const normalizeClientStatus = (value) => {
     if (!value) return null;
@@ -68,6 +72,16 @@ export default function App() {
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [settingsMessage, setSettingsMessage] = useState('');
   const [invoiceError, setInvoiceError] = useState('');
+  const [clientForm, setClientForm] = useState({
+    name: '',
+    company: '',
+    status: 'Solvable',
+    email: '',
+    phone: '',
+    industry: ''
+  });
+  const [editingClientId, setEditingClientId] = useState('');
+  const [clientFeedback, setClientFeedback] = useState('');
 
   const [formData, setFormData] = useState({ clientName: '', clientStatus: 'Fidele', date: '', dueDate: '', amountHT: '', tva: '', paymentStatus: 'Pending', paymentDelay: '', paymentMethod: 'Bank Transfer', status: 'En attente' });
 
@@ -136,28 +150,31 @@ export default function App() {
 
   // --- ENGINE: CLIENT SCORING ---
   const clientsData = useMemo(() => {
-    const map = {};
-    invoices.forEach(inv => {
-      if (!map[inv.clientName]) {
-        map[inv.clientName] = { name: inv.clientName, invoiceCount: 0, totalDelay: 0, paidCount: 0, flaggedCount: 0 };
-      }
-      map[inv.clientName].invoiceCount += 1;
-      map[inv.clientName].totalDelay += Number(inv.paymentDelay || 0);
-      if (inv.paymentStatus === 'Paid') map[inv.clientName].paidCount += 1;
-      if (inv.flags && inv.flags.length > 0) map[inv.clientName].flaggedCount += 1;
-    });
+    return clients.map((client) => {
+      const clientInvoices = invoices.filter((invoice) => {
+        const invoiceClientId = String(invoice.clientId || '').trim().toLowerCase();
+        const invoiceClientName = String(invoice.clientName || '').trim().toLowerCase();
+        const clientId = String(client._id || client.id || '').trim().toLowerCase();
+        const clientName = String(client.name || '').trim().toLowerCase();
 
-    return Object.values(map).map(c => {
-      const isSolvable = c.paidCount === c.invoiceCount || (c.totalDelay / c.invoiceCount) < 30;
-      const isFidele = c.invoiceCount > 3; // > 3 invoices
-      const hasRisks = c.flaggedCount > 0;
-      
-      const solvabilityScore = Math.round((c.paidCount / c.invoiceCount) * 100) || 0;
-      const fidelityScore = Math.min(100, Math.round((c.invoiceCount / 4) * 100));
+        return invoiceClientId === clientId || invoiceClientName === clientName || invoiceClientName === String(client.company || '').trim().toLowerCase();
+      });
 
-      return { ...c, isSolvable, isFidele, hasRisks, solvabilityScore, fidelityScore };
+      const invoiceCount = clientInvoices.length;
+      const totalDelay = clientInvoices.reduce((sum, invoice) => sum + Number(invoice.paymentDelay || 0), 0);
+      const paidCount = clientInvoices.filter((invoice) => invoice.paymentStatus === 'Paid').length;
+      const flaggedCount = clientInvoices.filter((invoice) => invoice.flags && invoice.flags.length > 0).length;
+      const normalizedStatus = normalizeClientStatus(client.status);
+      const isSolvable = normalizedStatus === 'Solvable' || (invoiceCount > 0 ? (paidCount === invoiceCount || (totalDelay / invoiceCount) < 30) : false);
+      const isFidele = normalizedStatus === 'Fidèle' || String(client.status || '').toLowerCase().includes('fid') || invoiceCount > 3;
+      const hasRisks = normalizedStatus === 'Insolvable' || Number(client.riskScore || 0) > 70 || flaggedCount > 0;
+
+      const solvabilityScore = invoiceCount > 0 ? Math.round((paidCount / invoiceCount) * 100) || 0 : (isSolvable ? 100 : 0);
+      const fidelityScore = isFidele ? 100 : Math.min(100, Math.round((invoiceCount / 4) * 100));
+
+      return { ...client, invoiceCount, totalDelay, paidCount, flaggedCount, isSolvable, isFidele, hasRisks, solvabilityScore, fidelityScore };
     }).sort((a, b) => a.name.localeCompare(b.name));
-  }, [invoices]);
+  }, [clients, invoices]);
 
   // --- DERIVED METRICS ---
   const stats = useMemo(() => {
@@ -172,7 +189,7 @@ export default function App() {
     const map = {};
 
     clientsData.forEach(client => {
-      map[client.name] = client.isSolvable ? 'Solvable' : 'Insolvable';
+      map[client.name] = normalizeClientStatus(client.status) || (client.isFidele ? 'Fidèle' : (client.isSolvable ? 'Solvable' : 'Insolvable'));
     });
 
     invoices.forEach(inv => {
@@ -222,18 +239,56 @@ export default function App() {
   // --- FILTERING LOGIC ---
   const displayedInvoices = useMemo(() => {
     let result = invoices;
+
+    const toClientRow = (client) => {
+      const clientInvoices = invoices.filter(inv => inv.clientName === client.name || inv.clientId === client._id || inv.clientId === client.id).filter(Boolean);
+      const computedTotal = clientInvoices.reduce((sum, inv) => sum + Number(inv.totalTTC ?? inv.amountHT ?? inv.amount ?? 0), 0) || Number(client.totalRevenue || 0);
+
+      return {
+        id: client._id || client.id || client.name,
+        clientId: client._id || client.id || client.name,
+        clientName: client.name,
+        date: client.registrationDate || new Date().toISOString().slice(0, 10),
+        totalTTC: computedTotal,
+        paymentMethod: client.industry || 'Client',
+        paymentStatus: client.status || 'Solvable',
+        flags: client.hasRisks ? ['Risk profile flagged'] : [],
+        sourceType: 'client'
+      };
+    };
     
     // If a single client is selected, ignore global filters and show only theirs
     if (selectedClientName) {
       return result.filter(inv => inv.clientName === selectedClientName).sort((a, b) => new Date(b.date) - new Date(a.date));
     }
 
+    if (currentView === 'dashboard') {
+      let clientsResult = clientsData;
+
+      if (filter !== 'Tous') {
+        clientsResult = clientsResult.filter((client) => {
+          if (filter === 'Solvable') return client.isSolvable;
+          if (filter === 'Fidele') return client.isFidele;
+          if (filter === 'Risk') return client.hasRisks;
+          return true;
+        });
+      }
+
+      return clientsResult.map(toClientRow);
+    }
+
     if (currentView === 'solvable') {
-      result = result.filter(inv => clientsStatusByName[inv.clientName] === 'Solvable');
+      return clientsData
+        .filter((client) => clientsStatusByName[client.name] === 'Solvable')
+        .map(toClientRow);
     } else if (currentView === 'fidèle') {
-      result = result.filter(inv => clientsStatusByName[inv.clientName] === 'Fidèle');
+      return clientsData
+        .filter((client) => clientsStatusByName[client.name] === 'Fidèle')
+        .map(toClientRow);
     } else if (currentView === 'insolvable') {
-      result = result.filter(inv => clientsStatusByName[inv.clientName] === 'Insolvable');
+      return clientsData
+        .filter((client) => clientsStatusByName[client.name] === 'Insolvable')
+        .map(toClientRow);
     } else if (filter !== 'Tous') {
       result = result.filter(inv => {
         const client = clientsData.find(c => c.name === inv.clientName);
@@ -400,6 +455,9 @@ export default function App() {
         const createdClient = await createInvoice(newInvoice);
         const createdInvoice = createdClient?.invoices?.[0] || { ...newInvoice, id: newInvoice.id || `${Date.now()}` };
         setInvoices((current) => [createdInvoice, ...current.filter((inv) => inv.id !== createdInvoice.id)]);
+        setSelectedClientName(createdInvoice.clientName || newInvoice.clientName || null);
+        setCurrentView('dashboard');
+        setFilter('Tous');
       }
 
       setHasAudited(false);
@@ -412,6 +470,71 @@ export default function App() {
 
   const handleDelete = (id) => {
     setInvoices(invoices.filter(inv => inv.id !== id));
+  };
+
+  const resetClientForm = () => {
+    setClientForm({
+      name: '',
+      company: '',
+      status: 'Solvable',
+      email: '',
+      phone: '',
+      industry: ''
+    });
+    setEditingClientId('');
+  };
+
+  const startEditClient = (client) => {
+    setEditingClientId(String(client?._id || client?.id || ''));
+    setClientForm({
+      name: client?.name || '',
+      company: client?.company || '',
+      status: client?.status || 'Solvable',
+      email: client?.email || '',
+      phone: client?.phone || '',
+      industry: client?.industry || ''
+    });
+    setClientFeedback('');
+  };
+
+  const handleSaveClient = (event) => {
+    event.preventDefault();
+
+    if (!clientForm.name.trim()) {
+      setClientFeedback('Client name is required.');
+      return;
+    }
+
+    const payload = {
+      ...clientForm,
+      name: clientForm.name.trim(),
+      company: clientForm.company.trim() || clientForm.name.trim(),
+      email: clientForm.email.trim(),
+      phone: clientForm.phone.trim(),
+      industry: clientForm.industry.trim()
+    };
+
+    if (editingClientId) {
+      updateClient(editingClientId, payload);
+      setClientFeedback('Client updated successfully.');
+    } else {
+      addClient(payload);
+      setClientFeedback('Client created successfully.');
+    }
+
+    resetClientForm();
+  };
+
+  const handleDeleteClientRecord = (clientId) => {
+    if (!window.confirm('Delete this client? This action cannot be undone.')) {
+      return;
+    }
+
+    deleteClient(clientId);
+    if (editingClientId && editingClientId === String(clientId)) {
+      resetClientForm();
+    }
+    setClientFeedback('Client deleted successfully.');
   };
 
   const markAsPaid = (id) => {
@@ -470,6 +593,7 @@ export default function App() {
   const selectedClientData = clientsData.find(c => c.name === selectedClientName);
   const showSidebarLabels = isMobile || isSidebarExpanded;
   const isSettingsPage = currentView === 'settings';
+  const isClientManagementPage = currentView === 'clients-management';
   const roleBadgeClasses = {
     Admin: 'border-rose-400/20 bg-rose-400/10 text-rose-300',
     Finance: 'border-blue-400/20 bg-blue-400/10 text-blue-300',
@@ -559,6 +683,14 @@ export default function App() {
             >
               <Activity size={18} /> 
               {showSidebarLabels && <span>Global Dashboard</span>}
+            </button>
+            <button
+              onClick={() => changeView('clients-management')}
+              className={`mt-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium ${!selectedClientName && currentView === 'clients-management' ? 'bg-indigo-600 text-white shadow-sm' : 'hover:bg-slate-800 hover:text-white'}`}
+              title="Client Management"
+            >
+              <Users size={18} />
+              {showSidebarLabels && <span>Client Management</span>}
             </button>
           </div>
 
@@ -702,13 +834,19 @@ export default function App() {
             <h2 className="text-2xl font-bold text-slate-900">
               {isSettingsPage
                 ? 'Settings'
-                : (currentView !== 'dashboard' ? `Clients List - ${currentView === 'fidèle' ? 'Fidèles' : 'Solvables'}` : (selectedClientName ? `${selectedClientName} - Profile` : 'Global CRM Operations'))}
+                : isClientManagementPage
+                  ? 'Client Management'
+                  : (currentView !== 'dashboard'
+                      ? `Clients List - ${currentView === 'fidèle' ? 'Fidèles' : currentView === 'insolvable' ? 'Insolvables' : 'Solvables'}`
+                      : (selectedClientName ? `${selectedClientName} - Profile` : 'Global CRM Operations'))}
             </h2>
               <p className="text-sm text-slate-500 font-medium tracking-wide">
                 {isSettingsPage
                   ? 'Manage your account details, security, and session settings.'
+                  : isClientManagementPage
+                    ? 'Create, edit, and remove client records.'
                   : (currentView !== 'dashboard'
-                    ? `Filtered by status: ${currentView === 'fidèle' ? 'Fidèle' : 'Solvable'}`
+                    ? `Filtered by status: ${currentView === 'fidèle' ? 'Fidèle' : currentView === 'insolvable' ? 'Insolvable' : 'Solvable'}`
                     : (selectedClientName ? 'Dedicated client audit and finance tracking' : (user?.companyName ? `Overview for ${user.companyName}` : 'Enterprise firm overview')))}
               </p>
             </div>
@@ -727,6 +865,7 @@ export default function App() {
           {currentView === 'client-details' ? (
             <ProtectedPermissionRoute action="view_clients">
               <ClientDetailsPage
+                key={clientDetailsId || 'client-details'}
                 clientId={clientDetailsId || ''}
                 onBack={() => changeView('dashboard')}
                 onDelete={() => {
@@ -736,90 +875,32 @@ export default function App() {
               />
             </ProtectedPermissionRoute>
           ) : isSettingsPage ? (
-            <div className="grid gap-8 lg:grid-cols-2">
-              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-xl font-black text-slate-900">User Profile</h3>
-                    <p className="text-sm text-slate-500 mt-1">Review and update your account information.</p>
-                  </div>
-                  <button
-                    onClick={() => setIsEditingProfile(prev => !prev)}
-                    className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition-colors"
-                  >
-                    {isEditingProfile ? 'Cancel Edit' : 'Edit Profile'}
-                  </button>
-                </div>
-
-                <div className="rounded-2xl bg-slate-50 border border-slate-200 p-5 space-y-4">
-                  <div className="flex items-center gap-4">
-                    {profileForm.profileImage ? (
-                      <img
-                        src={profileForm.profileImage}
-                        alt={user?.fullName || 'User'}
-                        className="w-14 h-14 rounded-2xl object-cover shadow-lg shadow-indigo-500/20 ring-1 ring-white/20"
-                      />
-                    ) : (
-                      <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-black text-lg shadow-lg shadow-indigo-500/20">
-                        {user?.fullName?.charAt(0) || 'U'}
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-lg font-bold text-slate-900">{user?.fullName || 'User'}</p>
-                      <p className="text-sm text-slate-500">{user?.email || 'No email'}</p>
-                    </div>
-                  </div>
-
-                  {isEditingProfile ? (
-                    <form onSubmit={handleSaveProfile} className="grid gap-4">
-                      <input className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={profileForm.fullName} onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })} placeholder="Full name" />
-                      <input className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={profileForm.email} onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })} placeholder="Email" />
-                      <input className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={profileForm.companyName} onChange={(e) => setProfileForm({ ...profileForm, companyName: e.target.value })} placeholder="Department" />
-                      <label className="flex flex-col gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                        <span className="font-semibold text-slate-700">Profile image</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleProfileImageChange}
-                          className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800"
-                        />
-                      </label>
-                      <button type="submit" className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800">Save Profile</button>
-                    </form>
-                  ) : (
-                    <div className="grid gap-3 text-sm text-slate-700">
-                      <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-slate-200"><span className="text-slate-500">Image</span><span className="font-semibold text-slate-900">{user?.profileImage ? 'Custom image set' : 'Default avatar'}</span></div>
-                      <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-slate-200"><span className="text-slate-500">Name</span><span className="font-semibold text-slate-900">{user?.fullName || 'User'}</span></div>
-                      <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-slate-200"><span className="text-slate-500">Email</span><span className="font-semibold text-slate-900">{user?.email || '-'}</span></div>
-                      <div className="flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-slate-200"><span className="text-slate-500">Department</span><span className="font-semibold text-slate-900">{user?.companyName || 'Finance'}</span></div>
-                    </div>
-                  )}
-                </div>
-
-                <button onClick={handleLogout} className="w-full rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-300 transition-all hover:bg-rose-500 hover:text-white hover:border-rose-400/40">
-                  Logout
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                  <h3 className="text-xl font-black text-slate-900">Change Password</h3>
-                  <p className="text-sm text-slate-500 mt-1">Update your login password securely.</p>
-                  <form onSubmit={handleChangePassword} className="mt-6 grid gap-4">
-                    <input type="password" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} placeholder="Current password" />
-                    <input type="password" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={passwordForm.newPassword} onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} placeholder="New password" />
-                    <input type="password" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} placeholder="Confirm new password" />
-                    <button type="submit" className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700">Change Password</button>
-                  </form>
-                </div>
-
-                {settingsMessage && (
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                    {settingsMessage}
-                  </div>
-                )}
-              </div>
-            </div>
+            <SettingsView
+              user={user}
+              profileForm={profileForm}
+              setProfileForm={setProfileForm}
+              isEditingProfile={isEditingProfile}
+              setIsEditingProfile={setIsEditingProfile}
+              handleSaveProfile={handleSaveProfile}
+              handleProfileImageChange={handleProfileImageChange}
+              passwordForm={passwordForm}
+              setPasswordForm={setPasswordForm}
+              handleChangePassword={handleChangePassword}
+              settingsMessage={settingsMessage}
+              handleLogout={handleLogout}
+            />
+          ) : isClientManagementPage ? (
+            <ClientManagementView
+              editingClientId={editingClientId}
+              clientForm={clientForm}
+              setClientForm={setClientForm}
+              handleSaveClient={handleSaveClient}
+              resetClientForm={resetClientForm}
+              clientFeedback={clientFeedback}
+              clients={clients}
+              startEditClient={startEditClient}
+              handleDeleteClientRecord={handleDeleteClientRecord}
+            />
           ) : selectedClientName ? (
             <>
               <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-center gap-8 justify-between animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
@@ -913,139 +994,24 @@ export default function App() {
       </div>
 
       {/* === ADD/EDIT MODAL === */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 animate-in zoom-in-95 duration-200 border border-slate-100">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-black text-slate-900">{editingId ? 'Edit Record' : 'New Invoice'}</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-full transition-colors"><X size={20} /></button>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {invoiceError && (
-                <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-                  {invoiceError}
-                </div>
-              )}
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Client Name</label>
-                <input required type="text" className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium" value={formData.clientName} onChange={e => setFormData({...formData, clientName: e.target.value})} placeholder="e.g. Acme Corp" />
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Client Status</label>
-                <select className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium appearance-none" value={formData.clientStatus} onChange={e => setFormData({...formData, clientStatus: e.target.value})}>
-                  <option value="Fidèle">Fidèle</option>
-                  <option value="Solvable">Solvable</option>
-                  <option value="Insolvable">Insolvable</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Issue Date</label>
-                  <input required type="date" className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Payment Status</label>
-                  <select className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium appearance-none" value={formData.paymentStatus} onChange={e => setFormData({...formData, paymentStatus: e.target.value})}>
-                    <option value="Paid">Paid</option>
-                    <option value="Pending">Pending</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Date d'échéance</label>
-                <input required type="date" className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium" value={formData.dueDate} onChange={e => setFormData({...formData, dueDate: e.target.value})} />
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Amount HT</label>
-                  <input required type="number" step="0.01" className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium" value={formData.amountHT} onChange={e => setFormData({...formData, amountHT: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Calculated TVA</label>
-                  <input required type="number" step="0.01" className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium" value={formData.tva} onChange={e => setFormData({...formData, tva: e.target.value})} />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Delay (Days)</label>
-                  <input required type="number" className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium" value={formData.paymentDelay} onChange={e => setFormData({...formData, paymentDelay: e.target.value})} />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Method</label>
-                  <select className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all font-medium appearance-none" value={formData.paymentMethod} onChange={e => setFormData({...formData, paymentMethod: e.target.value})}>
-                    <option value="Bank Transfer">Bank Transfer</option>
-                    <option value="Credit Card">Credit Card</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Check">Check</option>
-                  </select>
-                </div>
-              </div>
-              <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase tracking-wider py-4 rounded-xl mt-6 transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-indigo-500/30">
-                {editingId ? 'Update Record' : 'Save Invoice'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+      <InvoiceModal
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        editingId={editingId}
+        invoiceError={invoiceError}
+        formData={formData}
+        setFormData={setFormData}
+        handleSubmit={handleSubmit}
+      />
 
       {/* === FISCAL EXPLANATION SLIDE-OVER DRAWER === */}
-      <div className={`fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300 ${isDrawerOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={() => setIsDrawerOpen(false)} />
-      <div className={`fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col border-l border-slate-200 ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        
-        <div className="flex items-center justify-between p-6 bg-rose-50 border-b border-rose-200">
-          <div className="flex items-center gap-3 text-rose-900">
-            <BookOpen className="text-rose-600" size={26} />
-            <h2 className="text-xl font-black">Audit Diagnosis</h2>
-          </div>
-          <button onClick={() => setIsDrawerOpen(false)} className="text-rose-500 hover:text-rose-900 hover:bg-rose-100 p-2 rounded-full transition-colors">
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="p-8 flex-1 overflow-y-auto bg-slate-50">
-          {selectedInvoice && (
-            <div className="space-y-8">
-              <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Target Entry</p>
-                <div className="space-y-2 text-sm text-slate-700 font-medium">
-                  <div className="flex justify-between"><span className="text-slate-500">Client</span> <span className="text-slate-900 font-bold">{selectedInvoice.clientName}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Date</span> <span>{selectedInvoice.date}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Due Date</span> <span>{selectedInvoice.dueDate || '-'}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">TTC Value</span> <span className="font-bold">{selectedInvoice.totalTTC.toLocaleString()} MAD</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Payment</span> <span>{selectedInvoice.paymentMethod}</span></div>
-                  <div className="flex justify-between items-center gap-3"><span className="text-slate-500">Status</span> <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${getInvoiceDisplayStatus(selectedInvoice).className}`}>{getInvoiceDisplayStatus(selectedInvoice).label}</span></div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 border-b border-slate-200 pb-3 mb-4">
-                  <AlertCircle size={16} className="text-rose-500" /> Regulatory Violations
-                </h3>
-                <div className="space-y-4">
-                  {selectedInvoice.flags.map((flag, idx) => (
-                    <div key={idx} className="bg-white border text-sm border-rose-200 border-l-4 border-l-rose-500 p-5 rounded-r-xl shadow-sm text-slate-800 font-medium leading-relaxed">
-                      {flag}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-        
-        <div className="p-6 border-t border-slate-200 bg-white space-y-3">
-          {selectedInvoice && (!selectedInvoice.status || selectedInvoice.status === 'En attente') && (
-            <button onClick={() => markAsPaid(selectedInvoice.id)} className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold uppercase tracking-wider transition-colors shadow-lg hover:shadow-emerald-600/20">
-              Marquer comme Payée
-            </button>
-          )}
-          <button onClick={() => setIsDrawerOpen(false)} className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold uppercase tracking-wider transition-colors shadow-lg hover:shadow-slate-900/20">
-            Acknowledge Report
-          </button>
-        </div>
-      </div>
+      <AuditDrawer
+        isDrawerOpen={isDrawerOpen}
+        setIsDrawerOpen={setIsDrawerOpen}
+        selectedInvoice={selectedInvoice}
+        getInvoiceDisplayStatus={getInvoiceDisplayStatus}
+        markAsPaid={markAsPaid}
+      />
 
     </div>
   );
