@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Building2, Users, AlertCircle, Plus, 
   Trash2, Edit2, X, Activity, DollarSign, 
-  Filter, Receipt, ShieldAlert, ChevronRight, BookOpen, Star, ShieldCheck, CheckCircle2, AlertTriangle, LogOut, Menu, Settings
+  Filter, Receipt, ShieldAlert, ChevronRight, BookOpen, Star, ShieldCheck, CheckCircle2, AlertTriangle, LogOut, Menu, Settings, Zap
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import AuthPage from './components/AuthPage';
@@ -15,6 +15,7 @@ import ClientDetailsPage from './components/client-details/ClientDetailsPage';
 import ProtectedPermissionRoute from './components/ProtectedPermissionRoute';
 import SettingsView from './components/SettingsView';
 import ClientManagementView from './components/ClientManagementView';
+import AiGroqChat from './components/AiGroqChat';
 import InvoiceModal from './components/InvoiceModal';
 import AuditDrawer from './components/AuditDrawer';
 import { useUser } from './context/UserContext';
@@ -68,6 +69,7 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 1024 : false));
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [profileForm, setProfileForm] = useState({ fullName: '', email: '', companyName: '', profileImage: '' });
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [settingsMessage, setSettingsMessage] = useState('');
@@ -326,52 +328,74 @@ export default function App() {
     navigate(`/clients/${encodeURIComponent(String(clientId))}`);
   };
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
-    if (!user) return;
+    if (isProfileSaving) return;
+    if (!token) {
+      setSettingsMessage('Please log in to update your profile.');
+      return;
+    }
 
-    const updateProfile = async () => {
-      try {
-        const payload = await authApi.updateProfile({
-          fullName: profileForm.fullName,
-          email: profileForm.email,
-          companyName: profileForm.companyName,
-          profileImage: profileForm.profileImage
-        }, token);
+    // Validation
+    if (!profileForm.fullName?.trim()) {
+      setSettingsMessage('Full name is required.');
+      return;
+    }
+    if (!profileForm.email?.trim()) {
+      setSettingsMessage('Email is required.');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(profileForm.email)) {
+      setSettingsMessage('Please enter a valid email address.');
+      return;
+    }
 
-        if (user.email && profileForm.email && user.email !== profileForm.email) {
-          const oldDataKey = `finance_crm_data_${user.email}`;
-          const oldRisksKey = `finance_crm_risks_${user.email}`;
-          const newDataKey = `finance_crm_data_${profileForm.email}`;
-          const newRisksKey = `finance_crm_risks_${profileForm.email}`;
-          const existingData = localStorage.getItem(oldDataKey);
-          const existingRisks = localStorage.getItem(oldRisksKey);
+    setIsProfileSaving(true);
+    setSettingsMessage('');
 
-          if (existingData) {
-            localStorage.setItem(newDataKey, existingData);
-            localStorage.removeItem(oldDataKey);
-          }
-          if (existingRisks) {
-            localStorage.setItem(newRisksKey, existingRisks);
-            localStorage.removeItem(oldRisksKey);
-          }
+    try {
+      const payload = await authApi.updateProfile({
+        fullName: profileForm.fullName.trim(),
+        email: profileForm.email.trim().toLowerCase(),
+        companyName: profileForm.companyName?.trim() || '',
+        profileImage: profileForm.profileImage
+      }, token);
+
+      // Migrate localStorage if email changed
+      if (user?.email && profileForm.email && user.email.toLowerCase() !== profileForm.email.toLowerCase()) {
+        const oldDataKey = `finance_crm_data_${user.email}`;
+        const oldRisksKey = `finance_crm_risks_${user.email}`;
+        const newDataKey = `finance_crm_data_${profileForm.email}`;
+        const newRisksKey = `finance_crm_risks_${profileForm.email}`;
+        const existingData = localStorage.getItem(oldDataKey);
+        const existingRisks = localStorage.getItem(oldRisksKey);
+
+        if (existingData) {
+          localStorage.setItem(newDataKey, existingData);
+          localStorage.removeItem(oldDataKey);
         }
-
-        login(payload);
-        setProfileForm({
-          fullName: payload.user.fullName || '',
-          email: payload.user.email || '',
-          companyName: payload.user.companyName || '',
-          profileImage: payload.user.profileImage || ''
-        });
-        setSettingsMessage('Profile updated successfully.');
-        setIsEditingProfile(false);
-      } catch (error) {
-        setSettingsMessage(error.message || 'Unable to update profile.');
+        if (existingRisks) {
+          localStorage.setItem(newRisksKey, existingRisks);
+          localStorage.removeItem(oldRisksKey);
+        }
       }
-    };
 
-    void updateProfile();
+      login(payload);
+      setProfileForm({
+        fullName: payload.user.fullName || '',
+        email: payload.user.email || '',
+        companyName: payload.user.companyName || '',
+        profileImage: payload.user.profileImage || ''
+      });
+      setSettingsMessage('Profile updated successfully. Changes will be reflected shortly.');
+      setIsEditingProfile(false);
+    } catch (error) {
+      console.error('Profile update error:', error);
+      setSettingsMessage(error.message || 'Failed to update profile. Please try again.');
+    } finally {
+      setIsProfileSaving(false);
+    }
   };
 
   const handleProfileImageChange = (event) => {
@@ -732,6 +756,14 @@ export default function App() {
                 <span className="text-rose-400"><AlertCircle size={16}/></span> 
                 {showSidebarLabels && <span>Risk Anomalies</span>}
               </button>
+              <button 
+                onClick={() => changeView('ai-chat')} 
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-sm ${!selectedClientName && currentView === 'ai-chat' ? 'bg-slate-800 border border-slate-700 text-white' : 'hover:bg-slate-800 hover:text-white border border-transparent'}`}
+                title="AI Groq Discussion"
+              >
+                <span className="text-cyan-400"><Zap size={16}/></span> 
+                {showSidebarLabels && <span>AI Discussion</span>}
+              </button>
             </div>
           </div>
 
@@ -888,6 +920,7 @@ export default function App() {
               handleChangePassword={handleChangePassword}
               settingsMessage={settingsMessage}
               handleLogout={handleLogout}
+              isProfileSaving={isProfileSaving}
             />
           ) : isClientManagementPage ? (
             <ClientManagementView
@@ -970,6 +1003,12 @@ export default function App() {
               <AddRiskForm onAddRisk={(newRisk) => setRiskAnomalies([newRisk, ...riskAnomalies])} />
               <RiskAnomaliesList anomalies={riskAnomalies} onDelete={(id) => setRiskAnomalies(riskAnomalies.filter(r => r.id !== id))} />
             </>
+          ) : currentView === 'ai-chat' ? (
+            <AiGroqChat 
+              riskAnomalies={riskAnomalies}
+              invoices={invoices}
+              clients={clients}
+            />
           ) : (
             <>
               <GlobalDashboardComponent 

@@ -1,83 +1,77 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { authApi } from '../api/auth';
 
 const UserContext = createContext(null);
 
-const SESSION_KEY = 'finaudit_auth_session';
-
-const readStoredSession = () => {
-  if (typeof window === 'undefined') {
-    return { currentUser: null, token: null };
-  }
-
-  const rawSession = localStorage.getItem(SESSION_KEY);
-  if (!rawSession) {
-    return { currentUser: null, token: null };
-  }
-
-  try {
-    const parsedSession = JSON.parse(rawSession);
-    return {
-      currentUser: parsedSession.currentUser || null,
-      token: parsedSession.token || null
-    };
-  } catch {
-    return { currentUser: null, token: null };
-  }
-};
-
 export function UserProvider({ children }) {
-  const [session, setSession] = useState(readStoredSession);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Load user and token from localStorage on mount
   useEffect(() => {
-    const nextSession = {
-      currentUser: session.currentUser,
-      token: session.token
-    };
-
-    if (nextSession.currentUser && nextSession.token) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(nextSession));
+    const storedToken = localStorage.getItem('authToken');
+    if (storedToken) {
+      setToken(storedToken);
+      // Optionally verify the token with the server
+      authApi.me(storedToken)
+        .then((response) => {
+          setUser(response.user || response);
+          setError(null);
+        })
+        .catch(() => {
+          // Token is invalid, clear it
+          localStorage.removeItem('authToken');
+          setToken(null);
+          setUser(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     } else {
-      localStorage.removeItem(SESSION_KEY);
+      setIsLoading(false);
     }
-  }, [session]);
+  }, []);
 
-  const setCurrentUser = (nextUser) => {
-    setSession((current) => ({
-      ...current,
-      currentUser: typeof nextUser === 'function' ? nextUser(current.currentUser) : nextUser
-    }));
-  };
+  const login = useCallback((payload) => {
+    const authToken = payload.token;
+    const userData = payload.user;
 
-  const setAuthToken = (token) => {
-    setSession((current) => ({ ...current, token }));
-  };
+    setToken(authToken);
+    setUser(userData);
+    localStorage.setItem('authToken', authToken);
+    setError(null);
+  }, []);
 
-  const login = ({ user, token }) => {
-    setSession({ currentUser: user, token });
-  };
+  const logout = useCallback(() => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('authToken');
+    setError(null);
+  }, []);
 
-  const logout = () => {
-    setSession({ currentUser: null, token: null });
-  };
-
-  const value = useMemo(() => ({
-    currentUser: session.currentUser,
-    token: session.token,
-    isAuthenticated: Boolean(session.currentUser && session.token),
-    role: session.currentUser?.role || 'Viewer',
-    setCurrentUser,
-    setAuthToken,
+  const value = {
+    user,
+    token,
+    isLoading,
+    error,
     login,
-    logout
-  }), [session]);
+    logout,
+    isAuthenticated: !!token
+  };
 
-  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
+  return (
+    <UserContext.Provider value={value}>
+      {children}
+    </UserContext.Provider>
+  );
 }
 
 export function useUser() {
   const context = useContext(UserContext);
   if (!context) {
-    throw new Error('useUser must be used within a UserProvider');
+    throw new Error('useUser must be used within UserProvider');
   }
   return context;
 }

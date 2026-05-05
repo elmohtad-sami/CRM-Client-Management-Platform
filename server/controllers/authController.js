@@ -1,7 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
+const { sendVerificationEmail } = require('../utils/emailService');
 
 const buildUserResponse = (user) => ({
   id: user._id,
@@ -11,6 +13,8 @@ const buildUserResponse = (user) => ({
   role: user.role,
   profileImage: user.profileImage || ''
 });
+
+const isProductionEnvironment = process.env.NODE_ENV === 'production';
 
 const signToken = (user) => {
   const secret = process.env.JWT_SECRET;
@@ -46,16 +50,38 @@ exports.register = asyncHandler(async (req, res, next) => {
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
+  
+  // Generate a 6-digit verification code
+  const verificationToken = String(crypto.randomInt(100000, 1000000));
+  const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
   const user = await User.create({
     fullName: String(fullName).trim(),
     companyName: String(companyName).trim(),
     email: normalizedEmail,
     passwordHash,
-    role: 'Finance'
+    role: 'Finance',
+    isVerified: false,
+    verificationToken,
+    verificationExpires
   });
 
-  const token = signToken(user);
-  return res.status(201).json({ token, user: buildUserResponse(user) });
+  try {
+    await sendVerificationEmail(normalizedEmail, user.fullName, verificationToken);
+  } catch (emailError) {
+    console.error('Registration: Email send failed:', emailError.message);
+    // Keep local registration usable even when mail delivery is broken.
+    if (isProductionEnvironment) {
+      await User.findByIdAndDelete(user._id);
+      return res.status(500).json({ message: 'Failed to send verification email. Please try again.' });
+    }
+    console.warn('Registration: continuing without verification email in non-production mode');
+  }
+
+  return res.status(201).json({ 
+    message: 'Registration successful. Please check your email to verify your account.',
+    user: buildUserResponse(user) 
+  });
 });
 
 exports.login = asyncHandler(async (req, res, next) => {
@@ -149,4 +175,67 @@ exports.updatePassword = asyncHandler(async (req, res, next) => {
   await user.save();
 
   return res.json({ message: 'Password updated successfully' });
+});
+
+exports.verifyEmail = asyncHandler(async (req, res, next) => {
+  const { token } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ message: 'Verification token is required' });
+  }
+
+  const user = await User.findOne({
+    verificationToken: token,
+    verificationExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    return res.status(400).json({ message: 'Invalid or expired verification token' });
+  }
+
+  user.isVerified = true;
+  user.verificationToken = null;
+  user.verificationExpires = null;
+  await user.save();
+
+  const signedToken = signToken(user);
+  return res.json({ 
+    message: 'Email verified successfully!',
+    token: signedToken,
+    user: buildUserResponse(user) 
+  });
+});
+
+exports.resendVerificationEmail = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail });
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  if (user.isVerified) {
+    return res.status(400).json({ message: 'Email is already verified' });
+  }
+
+  // Generate a new 6-digit verification code
+  const verificationToken = String(crypto.randomInt(100000, 1000000));
+  const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+  user.verificationToken = verificationToken;
+  user.verificationExpires = verificationExpires;
+  await user.save();
+
+  try {
+    await sendVerificationEmail(normalizedEmail, user.fullName, verificationToken);
+    return res.json({ message: 'Verification email sent successfully' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to send verification email' });
+  }
 });

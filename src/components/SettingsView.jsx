@@ -12,7 +12,8 @@ export default function SettingsView({
   setPasswordForm,
   handleChangePassword,
   settingsMessage,
-  handleLogout
+  handleLogout,
+  isProfileSaving
 }) {
   return (
     <div className="grid gap-8 lg:grid-cols-2">
@@ -63,7 +64,7 @@ export default function SettingsView({
                   className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800"
                 />
               </label>
-              <button type="submit" className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800">Save Profile</button>
+              <button type="submit" disabled={isProfileSaving} className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:opacity-60 disabled:cursor-not-allowed">{isProfileSaving ? 'Saving Profile...' : 'Save Profile'}</button>
             </form>
           ) : (
             <div className="grid gap-3 text-sm text-slate-700">

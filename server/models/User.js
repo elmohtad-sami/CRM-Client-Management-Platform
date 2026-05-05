@@ -11,7 +11,10 @@ const userSchema = new mongoose.Schema(
       enum: ['Admin', 'Finance', 'Analyst', 'Viewer'],
       default: 'Finance'
     },
-    profileImage: { type: String, default: '' }
+    profileImage: { type: String, default: '' },
+    isVerified: { type: Boolean, default: false },
+    verificationToken: { type: String, default: null },
+    verificationExpires: { type: Date, default: null }
   },
   { timestamps: true }
 );

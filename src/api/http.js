@@ -1,8 +1,8 @@
 const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 
-// Use an explicit backend URL when provided, otherwise fall back to localhost:5000 in dev.
+// Use an explicit backend URL when provided, otherwise fall back to localhost:5001 in dev.
 // This avoids 502 proxy failures if the Vite proxy reloads before the backend is ready.
-export const API_BASE_URL = (configuredBaseUrl || (import.meta.env.DEV ? 'http://localhost:5000' : ''))
+export const API_BASE_URL = (configuredBaseUrl || (import.meta.env.DEV ? 'http://localhost:5001' : ''))
   .replace(/\/$/, '');
 
 function buildApiUrl(path) {
