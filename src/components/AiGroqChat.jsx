@@ -8,7 +8,20 @@ export default function AiGroqChat({ riskAnomalies, invoices, clients }) {
     {
       id: 1,
       type: 'bot',
-      text: 'Hello! I\'m your AI assistant powered by Groq. I can help you analyze financial risks, discuss anomalies, and provide insights about your clients and invoices. What would you like to know?'
+      text: `Welcome! I'm your AI Financial Advisor powered by Groq. I specialize in:
+
+📊 **FINANCE** - Invoice analysis, payment optimization, cash flow insights
+👥 **CLIENT MANAGEMENT** - Client risk assessment, relationship strategies, account health
+📋 **FISCAL & ECONOMIC** - Tax optimization, compliance, fiscal risks, economic trends
+
+Ask me questions like:
+• "What's our payment risk with client X?"
+• "How can we optimize our cash flow?"
+• "What are the fiscal implications of..."
+• "Which clients need attention?"
+• "Analyze our recent anomalies"
+
+What would you like to know?`
     }
   ]);
   const [input, setInput] = useState('');
@@ -58,10 +71,17 @@ export default function AiGroqChat({ riskAnomalies, invoices, clients }) {
 
       const data = await response.json();
       
+      let botResponseText = data.response || data.message;
+      
+      if (!response.ok) {
+        console.error('API Error:', data);
+        botResponseText = `⚠️ **Error**: ${data.message || 'Failed to get response from AI. Please check server logs.'}`;
+      }
+      
       const botMessage = {
         id: Date.now() + 1,
         type: 'bot',
-        text: data.response || data.message || 'Sorry, I couldn\'t process that. Please try again.'
+        text: botResponseText || 'Sorry, I couldn\'t process that. Please try again.'
       };
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
@@ -69,7 +89,7 @@ export default function AiGroqChat({ riskAnomalies, invoices, clients }) {
       const errorMessage = {
         id: Date.now() + 1,
         type: 'bot',
-        text: 'I encountered an error. Please try again.'
+        text: `⚠️ **Network Error**: ${error.message}. Please check your connection and try again.`
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -103,7 +123,13 @@ export default function AiGroqChat({ riskAnomalies, invoices, clients }) {
                   : 'bg-slate-100 text-slate-900 rounded-bl-none'
               }`}
             >
-              <p className="text-sm leading-relaxed">{msg.text}</p>
+              <div className="text-sm leading-relaxed whitespace-pre-wrap break-all">
+                {msg.text.split('\n').map((line, idx) => (
+                  <div key={idx} className="mb-1 last:mb-0">
+                    {line}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ))}
@@ -125,7 +151,7 @@ export default function AiGroqChat({ riskAnomalies, invoices, clients }) {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about your risks, invoices, or clients..."
+            placeholder="Ask about finance, clients, fiscal matters, economic trends..."
             disabled={isLoading}
             className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder-slate-500 outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
           />

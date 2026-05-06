@@ -5,7 +5,6 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const clientRoutes = require('./routes/clientRoutes');
-const groqRoutes = require('./routes/groqRoutes');
 const { authenticateToken } = require('./middleware/authMiddleware');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -35,7 +34,6 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', authenticateToken, clientRoutes);
-app.use('/api/groq', groqRoutes);
 
 app.use(errorHandler);
 

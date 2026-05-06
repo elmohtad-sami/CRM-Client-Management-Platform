@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Building2, Users, AlertCircle, Plus, 
   Trash2, Edit2, X, Activity, DollarSign, 
-  Filter, Receipt, ShieldAlert, ChevronRight, BookOpen, Star, ShieldCheck, CheckCircle2, AlertTriangle, LogOut, Menu, Settings, Zap
+  Filter, Receipt, ShieldAlert, ChevronRight, BookOpen, Star, ShieldCheck, CheckCircle2, AlertTriangle, LogOut, Menu, Settings
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import AuthPage from './components/AuthPage';
@@ -15,7 +15,6 @@ import ClientDetailsPage from './components/client-details/ClientDetailsPage';
 import ProtectedPermissionRoute from './components/ProtectedPermissionRoute';
 import SettingsView from './components/SettingsView';
 import ClientManagementView from './components/ClientManagementView';
-import AiGroqChat from './components/AiGroqChat';
 import InvoiceModal from './components/InvoiceModal';
 import AuditDrawer from './components/AuditDrawer';
 import { useUser } from './context/UserContext';
@@ -25,7 +24,7 @@ import { authApi } from './api/auth';
 
 export default function App() {
   const navigate = useNavigate();
-  const { role, currentUser: user, token, login, logout, isAuthenticated } = useUser();
+  const { role, currentUser: user, token, login, logout, isAuthenticated, isLoading } = useUser();
   const { clients, invoices, setInvoices, createInvoice, updateClientInvoice, addClient, updateClient, deleteClient } = useClients();
 
   const normalizeClientStatus = (value) => {
@@ -74,6 +73,9 @@ export default function App() {
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [settingsMessage, setSettingsMessage] = useState('');
   const [invoiceError, setInvoiceError] = useState('');
+  const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
+  // Local copy of user specifically for the sidebar to ensure immediate updates
+  const [sidebarUser, setSidebarUser] = useState(() => user || null);
   const [clientForm, setClientForm] = useState({
     name: '',
     company: '',
@@ -136,8 +138,43 @@ export default function App() {
         companyName: user.companyName || '',
         profileImage: user.profileImage || ''
       });
+      // Sync sidebar local user copy as well
+      setSidebarUser(user || null);
+      // Trigger sidebar refresh whenever user profile data changes
+      setSidebarRefreshTrigger(prev => prev + 1);
     }
   }, [user]);
+
+  // Listen for explicit userUpdated events from the UserContext to force sync
+  useEffect(() => {
+    const handler = (e) => {
+      const newUser = e?.detail || null;
+      if (!newUser) {
+        setProfileForm({ fullName: '', email: '', companyName: '', profileImage: '' });
+        setSidebarUser(null);
+        setSidebarRefreshTrigger(prev => prev + 1);
+        return;
+      }
+      setProfileForm({
+        fullName: newUser.fullName || '',
+        email: newUser.email || '',
+        companyName: newUser.companyName || '',
+        profileImage: newUser.profileImage || ''
+      });
+      // Update sidebar local copy immediately
+      setSidebarUser(newUser || null);
+      setSidebarRefreshTrigger(prev => prev + 1);
+    };
+
+    if (typeof window !== 'undefined' && window.addEventListener) {
+      window.addEventListener('userUpdated', handler);
+    }
+    return () => {
+      if (typeof window !== 'undefined' && window.removeEventListener) {
+        window.removeEventListener('userUpdated', handler);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -332,22 +369,22 @@ export default function App() {
     e.preventDefault();
     if (isProfileSaving) return;
     if (!token) {
-      setSettingsMessage('Please log in to update your profile.');
+      setSettingsMessage('Error: Please log in to update your profile.');
       return;
     }
 
     // Validation
     if (!profileForm.fullName?.trim()) {
-      setSettingsMessage('Full name is required.');
+      setSettingsMessage('Error: Full name is required.');
       return;
     }
     if (!profileForm.email?.trim()) {
-      setSettingsMessage('Email is required.');
+      setSettingsMessage('Error: Email is required.');
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(profileForm.email)) {
-      setSettingsMessage('Please enter a valid email address.');
+      setSettingsMessage('Error: Please enter a valid email address.');
       return;
     }
 
@@ -361,6 +398,10 @@ export default function App() {
         companyName: profileForm.companyName?.trim() || '',
         profileImage: profileForm.profileImage
       }, token);
+
+      if (!payload || !payload.user) {
+        throw new Error('Invalid response from server');
+      }
 
       // Migrate localStorage if email changed
       if (user?.email && profileForm.email && user.email.toLowerCase() !== profileForm.email.toLowerCase()) {
@@ -381,18 +422,33 @@ export default function App() {
         }
       }
 
+      // Update user context with new data
+      // Update user context with new data
       login(payload);
+      // Ensure sidebar local copy is immediately updated with server response
+      try {
+        setSidebarUser(payload.user || null);
+        console.debug('handleSaveProfile: updated sidebarUser with payload.user', payload.user);
+      } catch (e) {
+        console.debug('handleSaveProfile: failed to setSidebarUser', e);
+      }
+      
+      // Update form with response data
       setProfileForm({
         fullName: payload.user.fullName || '',
         email: payload.user.email || '',
         companyName: payload.user.companyName || '',
         profileImage: payload.user.profileImage || ''
       });
-      setSettingsMessage('Profile updated successfully. Changes will be reflected shortly.');
+      
+      // Force sidebar refresh
+      setSidebarRefreshTrigger(prev => prev + 1);
+      
+      setSettingsMessage('Success: Profile updated successfully!');
       setIsEditingProfile(false);
     } catch (error) {
       console.error('Profile update error:', error);
-      setSettingsMessage(error.message || 'Failed to update profile. Please try again.');
+      setSettingsMessage(`Error: ${error.message || 'Failed to update profile. Please try again.'}`);
     } finally {
       setIsProfileSaving(false);
     }
@@ -413,7 +469,32 @@ export default function App() {
 
   const handleChangePassword = (e) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !token) {
+      setSettingsMessage('Please log in to change your password.');
+      return;
+    }
+
+    // Validation
+    if (!passwordForm.currentPassword?.trim()) {
+      setSettingsMessage('Current password is required.');
+      return;
+    }
+    if (!passwordForm.newPassword?.trim()) {
+      setSettingsMessage('New password is required.');
+      return;
+    }
+    if (!passwordForm.confirmPassword?.trim()) {
+      setSettingsMessage('Password confirmation is required.');
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setSettingsMessage('New password and confirmation password do not match.');
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      setSettingsMessage('New password must be at least 6 characters long.');
+      return;
+    }
 
     const updatePassword = async () => {
       try {
@@ -424,9 +505,15 @@ export default function App() {
         }, token);
 
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-        setSettingsMessage(payload.message || 'Password updated successfully.');
+        setSettingsMessage('Password updated successfully. Please log in again with your new password.');
+        
+        // Optional: logout after password change
+        setTimeout(() => {
+          handleLogout();
+        }, 2000);
       } catch (error) {
-        setSettingsMessage(error.message || 'Unable to update password.');
+        console.error('Password change error:', error);
+        setSettingsMessage(error.message || 'Unable to update password. Please try again.');
       }
     };
 
@@ -632,6 +719,14 @@ export default function App() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-600">
+        Loading account...
+      </div>
+    );
+  }
+
   if (!isAuthenticated) {
     return (
       <AuthPage 
@@ -756,14 +851,6 @@ export default function App() {
                 <span className="text-rose-400"><AlertCircle size={16}/></span> 
                 {showSidebarLabels && <span>Risk Anomalies</span>}
               </button>
-              <button 
-                onClick={() => changeView('ai-chat')} 
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-sm ${!selectedClientName && currentView === 'ai-chat' ? 'bg-slate-800 border border-slate-700 text-white' : 'hover:bg-slate-800 hover:text-white border border-transparent'}`}
-                title="AI Groq Discussion"
-              >
-                <span className="text-cyan-400"><Zap size={16}/></span> 
-                {showSidebarLabels && <span>AI Discussion</span>}
-              </button>
             </div>
           </div>
 
@@ -787,27 +874,27 @@ export default function App() {
         </div>
         
         {/* User Sidebar Bottom */}
-        <div className="mt-auto p-4 border-t border-white/10 bg-slate-950/70 backdrop-blur-md relative overflow-hidden">
+        <div key={`sidebar-footer-${sidebarRefreshTrigger}`} className="mt-auto p-4 border-t border-white/10 bg-slate-950/70 backdrop-blur-md relative overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-indigo-400/60 to-transparent" />
           <div className="absolute -right-10 -bottom-10 h-24 w-24 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none" />
           {showSidebarLabels ? (
             <div className="relative rounded-2xl border border-white/10 bg-white/5 px-4 py-4 shadow-[0_12px_30px_rgba(15,23,42,0.35)]">
               <div className="flex items-start justify-between gap-3 mb-4">
                 <div className="flex items-center gap-3 truncate">
-                  {user?.profileImage ? (
+                  {sidebarUser?.profileImage ? (
                     <img
-                      src={user.profileImage}
-                      alt={user?.fullName || 'User'}
+                      src={sidebarUser.profileImage}
+                      alt={sidebarUser?.fullName || 'User'}
                       className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-lg shadow-indigo-500/20 ring-1 ring-white/20"
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-sm font-bold text-white shrink-0 shadow-lg shadow-indigo-500/20 ring-1 ring-white/20">
-                      {user?.fullName?.charAt(0) || 'U'}
+                      {sidebarUser?.fullName?.charAt(0) || 'U'}
                     </div>
                   )}
                   <div className="truncate">
-                    <p className="text-sm font-semibold text-slate-100 truncate">{user?.fullName || 'User'}</p>
-                    <p className="text-xs text-slate-400 truncate">{user?.companyName || 'Finance Dept'}</p>
+                    <p className="text-sm font-semibold text-slate-100 truncate">{sidebarUser?.fullName || 'User'}</p>
+                    <p className="text-xs text-slate-400 truncate">{sidebarUser?.companyName || 'Finance Dept'}</p>
                   </div>
                 </div>
                 <div className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-semibold shrink-0 ${roleBadgeClasses[role] || roleBadgeClasses.Viewer}`}>
@@ -824,15 +911,15 @@ export default function App() {
             </div>
           ) : (
             <div className="relative rounded-2xl border border-white/10 bg-white/5 px-2 py-3 shadow-[0_12px_30px_rgba(15,23,42,0.35)] flex flex-col items-center gap-3">
-              {user?.profileImage ? (
+              {sidebarUser?.profileImage ? (
                 <img
-                  src={user.profileImage}
-                  alt={user?.fullName || 'User'}
+                  src={sidebarUser.profileImage}
+                  alt={sidebarUser?.fullName || 'User'}
                   className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-indigo-500/20 ring-1 ring-white/20"
                 />
               ) : (
                 <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-indigo-500/20 ring-1 ring-white/20">
-                  {user?.fullName?.charAt(0) || 'U'}
+                  {sidebarUser?.fullName?.charAt(0) || 'U'}
                 </div>
               )}
               <button
@@ -1003,12 +1090,6 @@ export default function App() {
               <AddRiskForm onAddRisk={(newRisk) => setRiskAnomalies([newRisk, ...riskAnomalies])} />
               <RiskAnomaliesList anomalies={riskAnomalies} onDelete={(id) => setRiskAnomalies(riskAnomalies.filter(r => r.id !== id))} />
             </>
-          ) : currentView === 'ai-chat' ? (
-            <AiGroqChat 
-              riskAnomalies={riskAnomalies}
-              invoices={invoices}
-              clients={clients}
-            />
           ) : (
             <>
               <GlobalDashboardComponent 
