@@ -69,49 +69,49 @@ export default function ActivityTimeline({ clientId, activities }) {
   };
 
   return (
-    <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm transition-all duration-300">
+    <section className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6 transition-all duration-300">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-bold text-slate-900">Activity Timeline</h2>
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">
+        <h2 className="text-lg font-bold text-white">Activity Timeline</h2>
+        <span className="rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-1 text-xs font-semibold text-white/50">
           Read only
         </span>
       </div>
-      {loading && <p className="mt-3 text-sm text-slate-500">Saving...</p>}
-      <div className="mt-4 space-y-4">
+      {loading && <p className="mt-3 text-xs text-white/50">Saving...</p>}
+      <div className="mt-4 space-y-3">
         {localActivities.map((activity, index) => (
-          <div key={activity.id} className="flex gap-4">
+          <div key={activity.id} className="flex gap-3">
             <div className="relative flex flex-col items-center">
               <span className="h-3 w-3 rounded-full bg-indigo-500 ring-4 ring-indigo-500/15" />
-              {index !== localActivities.length - 1 && <span className="mt-1 h-full w-px bg-slate-200" />}
+              {index !== localActivities.length - 1 && <span className="mt-1 h-full w-px bg-white/[0.08]" />}
             </div>
-            <article className="-mt-1 flex-1 rounded-xl border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-start justify-between gap-3">
+            <article className="-mt-1 flex-1 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4">
+              <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   {editingId === activity.id ? (
                     <div className="space-y-3">
                       <input
                         value={form.title}
                         onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm font-semibold text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30"
                         placeholder="Activity title"
                       />
                       <textarea
                         value={form.description}
                         onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
                         rows={3}
-                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white/70 placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30 resize-none"
                         placeholder="Activity description"
                       />
                     </div>
                   ) : (
                     <>
-                      <h3 className="text-sm font-semibold text-slate-900">{activity.title}</h3>
-                      <p className="mt-2 text-sm text-slate-700 leading-6">{activity.description}</p>
+                      <h3 className="text-sm font-semibold text-white">{activity.title}</h3>
+                      <p className="mt-2 text-sm text-white/70 leading-6">{activity.description}</p>
                     </>
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-2 shrink-0">
-                  <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-white/50">
                     {new Date(activity.date).toLocaleDateString()}
                   </p>
                   <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export default function ActivityTimeline({ clientId, activities }) {
                         <button
                           type="button"
                           onClick={() => saveEditing(activity.id)}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-600 transition-colors hover:bg-indigo-100"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white/80 transition-colors hover:bg-white/20"
                           title="Save activity"
                         >
                           <Check size={14} />
@@ -128,7 +128,7 @@ export default function ActivityTimeline({ clientId, activities }) {
                         <button
                           type="button"
                           onClick={cancelEditing}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-100"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.12] bg-white/[0.04] text-white/50 transition-colors hover:bg-white/10"
                           title="Cancel edit"
                         >
                           <X size={14} />
@@ -138,7 +138,7 @@ export default function ActivityTimeline({ clientId, activities }) {
                       <button
                         type="button"
                         onClick={() => startEditing(activity)}
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.12] bg-white/10 text-white/70 hover:bg-white/20 transition-colors"
                         title="Edit activity"
                       >
                         <Edit2 size={14} />
@@ -147,7 +147,7 @@ export default function ActivityTimeline({ clientId, activities }) {
                     <button
                       type="button"
                       onClick={() => deleteActivity(activity.id)}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition-colors"
                       title="Delete activity"
                     >
                       <Trash2 size={14} />

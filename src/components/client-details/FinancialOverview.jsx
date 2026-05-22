@@ -1,8 +1,8 @@
 import React from 'react';
 
 const Card = ({ label, value, tone }) => (
-  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4">
-    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</p>
+  <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3">
+    <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50">{label}</p>
     <p className={`mt-2 text-xl font-black ${tone}`}>{value}</p>
   </div>
 );
@@ -21,22 +21,22 @@ export default function FinancialOverview({ client }) {
   const score = Math.max(0, Math.min(100, Math.round(Number(client.riskScore || 0) + (outstandingAmount > 0 ? 10 : 0) + (delayDays > 0 ? 5 : 0))));
 
   return (
-    <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm transition-all duration-300">
-      <h2 className="text-lg font-bold text-slate-900">Financial Overview</h2>
+    <section className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6 transition-all duration-300">
+      <h2 className="text-lg font-bold text-white">Financial Overview</h2>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Card label="Total Revenue" value={`${totalRevenue.toLocaleString()} MAD`} tone="text-indigo-600" />
-        <Card label="Outstanding" value={`${outstandingAmount.toLocaleString()} MAD`} tone="text-rose-600" />
-        <Card label="Paid Amount" value={`${paidAmount.toLocaleString()} MAD`} tone="text-emerald-600" />
-        <Card label="Delay Days" value={`${Math.max(0, Math.round(delayDays / (1000 * 60 * 60 * 24)))} days`} tone="text-amber-600" />
+        <Card label="Total Revenue" value={`${totalRevenue.toLocaleString()} MAD`} tone="text-white" />
+        <Card label="Outstanding" value={`${outstandingAmount.toLocaleString()} MAD`} tone="text-rose-300" />
+        <Card label="Paid Amount" value={`${paidAmount.toLocaleString()} MAD`} tone="text-emerald-300" />
+        <Card label="Delay Days" value={`${Math.max(0, Math.round(delayDays / (1000 * 60 * 60 * 24)))} days`} tone="text-amber-300" />
       </div>
 
-      <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4">
-        <div className="mb-2 flex items-center justify-between text-sm">
-          <span className="font-semibold text-slate-700">Risk score progress</span>
-          <span className="font-bold text-slate-900">{score}%</span>
+      <div className="mt-5 rounded-xl border border-white/[0.08] bg-white/[0.04] p-4">
+        <div className="mb-2 flex items-center justify-between text-xs">
+          <span className="font-semibold text-white/70">Risk score progress</span>
+          <span className="font-bold text-white">{score}%</span>
         </div>
-        <div className="h-3 overflow-hidden rounded-full bg-slate-200">
+        <div className="h-3 overflow-hidden rounded-full bg-white/10">
           <div
             className={`h-full rounded-full transition-all duration-500 ${score > 80 ? 'bg-rose-500' : score > 60 ? 'bg-amber-500' : 'bg-emerald-500'}`}
             style={{ width: `${score}%` }}

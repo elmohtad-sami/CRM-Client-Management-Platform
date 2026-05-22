@@ -98,29 +98,29 @@ What would you like to know?`
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="flex flex-col h-full bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] overflow-hidden">
       {/* Header */}
-      <div className="bg-linear-to-r from-indigo-600 to-cyan-500 text-white px-6 py-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/20 rounded-lg">
-            <Zap size={20} />
+      <div className="bg-black/30 backdrop-blur-xl border-b border-white/[0.08] text-white px-4 py-3">
+        <div className="flex items-center gap-2">
+                <div className="p-2 bg-white/10 rounded-lg">
+            <Zap size={18} />
           </div>
           <div>
             <h3 className="text-lg font-bold">AI Groq Assistant</h3>
-            <p className="text-sm opacity-90">Analyze your financial data</p>
+            <p className="text-xs opacity-90">Analyze your financial data</p>
           </div>
         </div>
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
-              className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
+              className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl ${
                 msg.type === 'user'
-                  ? 'bg-indigo-600 text-white rounded-br-none'
-                  : 'bg-slate-100 text-slate-900 rounded-bl-none'
+                  ? 'bg-white/15 text-white backdrop-blur-sm rounded-br-none'
+                  : 'bg-white/[0.06] text-white/90 backdrop-blur-sm rounded-bl-none'
               }`}
             >
               <div className="text-sm leading-relaxed whitespace-pre-wrap break-all">
@@ -135,9 +135,9 @@ What would you like to know?`
         ))}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-slate-100 text-slate-900 px-4 py-3 rounded-2xl rounded-bl-none flex items-center gap-2">
-              <Loader size={16} className="animate-spin" />
-              <span className="text-sm">Thinking...</span>
+            <div className="bg-white/[0.06] text-white/70 px-4 py-2.5 rounded-2xl rounded-bl-none flex items-center gap-2">
+              <Loader size={14} className="animate-spin" />
+              <span className="text-xs">Thinking...</span>
             </div>
           </div>
         )}
@@ -145,7 +145,7 @@ What would you like to know?`
       </div>
 
       {/* Input Form */}
-      <div className="border-t border-slate-200 p-4 bg-slate-50">
+      <div className="border-t border-white/[0.08] px-4 py-3 bg-transparent">
         <form onSubmit={sendMessage} className="flex gap-2">
           <input
             type="text"
@@ -153,14 +153,14 @@ What would you like to know?`
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about finance, clients, fiscal matters, economic trends..."
             disabled={isLoading}
-            className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 placeholder-slate-500 outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
+            className="flex-1 px-4 py-2.5 rounded-xl border border-white/[0.15] bg-white/[0.08] text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30 disabled:opacity-60"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="px-4 py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2.5 rounded-xl bg-white/15 text-white font-bold uppercase tracking-wider text-xs hover:bg-white/25 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 backdrop-blur-sm border border-white/10"
           >
-            <Send size={16} />
+            <Send size={14} />
             {!isLoading && <span className="hidden sm:inline">Send</span>}
           </button>
         </form>

@@ -1,1 +1,76 @@
 @import "tailwindcss";
+
+@layer utilities {
+	.screen-only {
+		display: block;
+	}
+
+	.print-only {
+		display: none;
+	}
+}
+
+@media print {
+	@page {
+		size: A4 landscape;
+		margin: 12mm;
+	}
+
+	html,
+	body,
+	#root {
+		background: #ffffff !important;
+		color: #0f172a !important;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	.screen-only,
+	.no-print,
+	[data-print-hide],
+	[data-html2canvas-ignore] {
+		display: none !important;
+	}
+
+	.print-only {
+		display: block !important;
+	}
+
+	.print-dashboard-report {
+		display: block !important;
+		width: 100% !important;
+		max-width: 1120px !important;
+		margin: 0 auto !important;
+		padding: 0 !important;
+		background: #ffffff !important;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	.print-dashboard-report * {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+	}
+
+	.print-no-break {
+		break-inside: avoid;
+		page-break-inside: avoid;
+	}
+
+	.print-dashboard-report table {
+		width: 100% !important;
+	}
+
+	.print-dashboard-report thead {
+		display: table-header-group;
+	}
+
+	.print-dashboard-report tr {
+		break-inside: avoid;
+		page-break-inside: avoid;
+	}
+
+	.print-dashboard-report svg {
+		overflow: visible !important;
+	}
+}

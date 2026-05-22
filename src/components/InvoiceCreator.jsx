@@ -165,27 +165,27 @@ export default function InvoiceCreator() {
       {/* Generate Invoice Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white shadow-md transition hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
+        className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 font-bold text-white text-xs uppercase tracking-wider shadow-md transition hover:bg-white/25 backdrop-blur-sm border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
       >
-        <FileText size={18} />
+        <FileText size={14} />
         <span>Generate New Invoice</span>
       </button>
 
       {/* Modal Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 px-4 py-6">
-          <div className="relative h-screen w-full max-w-6xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl px-4 py-6">
+          <div className="relative h-screen w-full max-w-6xl overflow-y-auto rounded-2xl bg-black/70 backdrop-blur-2xl shadow-2xl border border-white/[0.12]">
             {/* Modal Header */}
-            <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white px-8 py-6">
+            <div className="sticky top-0 flex items-center justify-between border-b border-white/[0.08] bg-black/40 backdrop-blur-xl px-6 py-4">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Create New Invoice</h2>
-                <p className="text-sm text-gray-500">Fill in the form and see your invoice preview in real-time</p>
+                <h2 className="text-xl font-bold text-white">Create New Invoice</h2>
+                <p className="text-xs text-white/50">Fill in the form and see your invoice preview in real-time</p>
               </div>
               <button
                 onClick={closeModal}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/60 transition hover:bg-white/20 hover:text-white"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
@@ -193,11 +193,11 @@ export default function InvoiceCreator() {
             <div className="px-8 py-6">
               <div className="mx-auto max-w-2xl">
                 {/* Form Section */}
-                <div className="rounded-xl bg-gray-50 p-6">
-                  <h3 className="mb-5 text-lg font-semibold text-gray-800">Invoice Details</h3>
-                  <form className="space-y-4">
+                <div className="rounded-xl bg-white/[0.04] p-6">
+                  <h3 className="mb-5 text-lg font-semibold text-white/80">Invoice Details</h3>
+                  <form className="space-y-2.5">
                     <div>
-                      <label htmlFor="clientName" className="mb-2 block text-sm font-medium text-gray-700">
+                      <label htmlFor="clientName" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
                         Client Name
                       </label>
                       <input
@@ -207,12 +207,12 @@ export default function InvoiceCreator() {
                         value={invoiceData.clientName}
                         onChange={handleChange}
                         placeholder="John Doe"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none transition focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="phone" className="mb-2 block text-sm font-medium text-gray-700">
+                      <label htmlFor="phone" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
                         Client Phone
                       </label>
                       <input
@@ -222,12 +222,12 @@ export default function InvoiceCreator() {
                         value={invoiceData.phone}
                         onChange={handleChange}
                         placeholder="+212 6 00 00 00 00"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none transition focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="address" className="mb-2 block text-sm font-medium text-gray-700">
+                      <label htmlFor="address" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
                         Client Address
                       </label>
                       <input
@@ -237,12 +237,12 @@ export default function InvoiceCreator() {
                         value={invoiceData.address}
                         onChange={handleChange}
                         placeholder="Casablanca, Morocco"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none transition focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="email" className="mb-2 block text-sm font-medium text-gray-700">
+                      <label htmlFor="email" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
                         Client Email
                       </label>
                       <input
@@ -252,12 +252,12 @@ export default function InvoiceCreator() {
                         value={invoiceData.email}
                         onChange={handleChange}
                         placeholder="client@example.com"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none transition focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="invoiceNumber" className="mb-2 block text-sm font-medium text-gray-700">
+                      <label htmlFor="invoiceNumber" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
                         Invoice Number
                       </label>
                       <input
@@ -267,12 +267,12 @@ export default function InvoiceCreator() {
                         value={invoiceData.invoiceNumber}
                         onChange={handleChange}
                         placeholder="2026-001"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none transition focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="dueDate" className="mb-2 block text-sm font-medium text-gray-700">
+                      <label htmlFor="dueDate" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
                         Due Date
                       </label>
                       <input
@@ -281,12 +281,12 @@ export default function InvoiceCreator() {
                         type="date"
                         value={invoiceData.dueDate}
                         onChange={handleChange}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none transition focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white outline-none transition focus:ring-2 focus:ring-white/30"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="amountHT" className="mb-2 block text-sm font-medium text-gray-700">
+                      <label htmlFor="amountHT" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
                         Amount HT (DH)
                       </label>
                       <input
@@ -298,26 +298,26 @@ export default function InvoiceCreator() {
                         value={invoiceData.amountHT}
                         onChange={handleChange}
                         placeholder="1200.00"
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 outline-none transition focus:border-purple-500 focus:ring-1 focus:ring-purple-200"
+                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
                       />
                     </div>
 
                     <div className="space-y-2 pt-2">
-                      <div className="flex justify-between rounded-lg bg-white p-3">
-                        <span className="font-medium text-gray-700">TVA (20%)</span>
-                        <span className="text-gray-900">{parseFloat(vatAmount).toFixed(2)} €</span>
+                      <div className="flex justify-between rounded-xl bg-white/[0.06] px-4 py-2.5">
+                        <span className="font-medium text-white/70">TVA (20%)</span>
+                        <span className="text-white">{parseFloat(vatAmount).toFixed(2)} €</span>
                       </div>
-                      <div className="flex justify-between rounded-lg bg-purple-50 p-3">
-                        <span className="font-semibold text-gray-900">Total TTC</span>
-                        <span className="text-lg font-semibold text-purple-600">{parseFloat(totalTTC).toFixed(2)} €</span>
+                      <div className="flex justify-between rounded-xl bg-white/10 px-4 py-2.5">
+                        <span className="font-semibold text-white">Total TTC</span>
+                        <span className="text-lg font-semibold text-white/80">{parseFloat(totalTTC).toFixed(2)} €</span>
                       </div>
                     </div>
 
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex gap-2 pt-4">
                       <button
                         type="button"
                         onClick={closeModal}
-                        className="flex-1 rounded-lg border border-gray-300 px-4 py-2 font-medium text-gray-700 transition hover:bg-gray-100"
+                        className="flex-1 rounded-xl border border-white/[0.12] bg-white/[0.04] px-4 py-2.5 font-medium text-white/70 text-xs uppercase tracking-wider transition hover:bg-white/10"
                       >
                         Cancel
                       </button>
@@ -325,7 +325,7 @@ export default function InvoiceCreator() {
                         type="button"
                         onClick={downloadPDF}
                         disabled={isDownloading}
-                        className="flex-1 rounded-lg bg-purple-600 px-4 py-2 font-semibold text-white transition hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2"
+                        className="flex-1 rounded-xl bg-white/15 px-4 py-2.5 font-bold text-white text-xs uppercase tracking-wider transition hover:bg-white/25 backdrop-blur-sm border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
                       >
                         {isDownloading ? 'Generating PDF...' : 'Create & Download PDF'}
                       </button>

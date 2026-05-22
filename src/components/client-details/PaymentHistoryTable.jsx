@@ -43,18 +43,18 @@ export default function PaymentHistoryTable({ payments = [], onStatusChange }) {
   };
 
   return (
-    <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm transition-all duration-300">
-      <h2 className="text-lg font-bold text-slate-900">Payment History</h2>
+    <section className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6 transition-all duration-300">
+      <h2 className="text-lg font-bold text-white">Payment History</h2>
 
       <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-160 text-sm text-left">
-          <thead className="bg-slate-50 text-slate-500 border-b border-slate-200">
+          <thead className="bg-white/[0.04] text-white/50 border-b border-white/[0.08]">
             <tr>
               {columns.map((column) => (
-                <th key={column.key} className="px-4 py-3 text-xs font-bold uppercase tracking-wider">
+                <th key={column.key} className="px-4 py-3 text-xs font-semibold uppercase tracking-wider">
                   <button
                     onClick={() => handleSort(column.key)}
-                    className="inline-flex items-center gap-1 hover:text-slate-900 transition-colors"
+                    className="inline-flex items-center gap-1 hover:text-white transition-colors"
                   >
                     {column.label}
                     <ArrowUpDown size={14} />
@@ -63,18 +63,18 @@ export default function PaymentHistoryTable({ payments = [], onStatusChange }) {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-white/[0.05]">
             {sortedPayments.map((row) => (
-              <tr key={row.id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-3 text-slate-700">{new Date(row.date).toLocaleDateString()}</td>
-                <td className="px-4 py-3 font-semibold text-slate-900">{row.reference}</td>
-                <td className="px-4 py-3 text-slate-700">{row.method}</td>
-                <td className="px-4 py-3 font-semibold text-indigo-600">{row.amount.toLocaleString()} MAD</td>
+              <tr key={row.id} className="hover:bg-white/[0.03] transition-colors">
+                <td className="px-4 py-3 text-white/70">{new Date(row.date).toLocaleDateString()}</td>
+                <td className="px-4 py-3 font-semibold text-white">{row.reference}</td>
+                <td className="px-4 py-3 text-white/70">{row.method}</td>
+                <td className="px-4 py-3 font-semibold text-white">{row.amount.toLocaleString()} MAD</td>
                 <td className="px-4 py-3">
                   <button
                     type="button"
                     onClick={() => toggleStatus(row)}
-                    className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold transition-colors ${row.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100' : row.status === 'Overdue' ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100' : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'}`}
+                    className={`inline-flex rounded-full border px-3 py-1 text-xs font-bold transition-colors                     ${row.status === 'Paid' ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20' : row.status === 'Overdue' ? 'bg-rose-500/15 text-rose-300 border-rose-500/30 hover:bg-rose-500/20' : 'bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'}`}
                   >
                     {row.status}
                   </button>

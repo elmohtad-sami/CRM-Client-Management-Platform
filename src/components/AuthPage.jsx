@@ -125,94 +125,72 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
   // Verification form view
   if (awaitingVerification) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-stretch justify-center p-4 md:p-6 font-sans text-slate-900">
-        <div className="w-full max-w-7xl min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] bg-transparent rounded-2xl overflow-hidden shadow-none md:shadow-xl flex flex-col md:flex-row">
-          {/* Left split: welcome panel */}
-          <div className="w-full md:w-1/2 bg-linear-to-b from-indigo-600 via-indigo-500 to-cyan-500 text-white px-6 py-10 md:p-12 flex flex-col justify-center order-1 md:order-0 min-h-65 md:min-h-0">
-            <div className="max-w-md mx-auto md:mx-0 text-center md:text-left">
-              <div className="flex justify-center md:justify-start mb-6">
-                <CheckCircle2 size={48} className="text-green-300" />
+      <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden font-sans">
+        <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.25) 0%, rgba(234,88,12,0.10) 50%, transparent 70%)' }} />
+        <div className="absolute -top-20 -right-20 w-[450px] h-[450px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(217,70,239,0.25) 0%, rgba(147,51,234,0.10) 50%, transparent 70%)' }} />
+        <div className="w-[500px] h-[500px] rounded-full bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
+          <div className="w-full max-w-[340px]">
+            <div className="flex items-center gap-3 mb-5 justify-center">
+              <div className="p-2.5 bg-white/10 rounded-xl">
+                <CheckCircle2 className="text-white" size={26} />
               </div>
-              <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4">VERIFY EMAIL</h2>
-              <h3 className="text-lg sm:text-xl font-semibold mb-4 opacity-90">One more step to go!</h3>
-              <p className="text-sm sm:text-base opacity-90 leading-relaxed max-w-xl mx-auto md:mx-0">We've sent a verification email to <strong>{verificationEmail}</strong>. Enter the code from the email to complete your registration.</p>
+              <div>
+                <h1 className="text-xl font-bold text-white">Verify Email</h1>
+                <p className="text-xs text-white/50">Secure your account</p>
+              </div>
             </div>
-          </div>
-
-          {/* Right split: verification card */}
-          <div className="w-full md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:p-6 order-2 md:order-0">
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-              <div className="p-6 sm:p-8">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="p-3 bg-indigo-50 rounded-lg">
-                    <Mail className="text-indigo-600" size={28} />
-                  </div>
-                  <div>
-                    <h1 className="text-2xl font-black text-slate-900">Verify Email</h1>
-                    <p className="text-sm text-slate-500">Secure your account</p>
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="mb-4 p-3 bg-rose-50 border-l-4 border-rose-500 text-rose-700 text-sm font-medium rounded-r-md">
-                    {error}
-                  </div>
-                )}
-
-                {verificationMessage && (
-                  <div className="mb-4 p-3 bg-blue-50 border-l-4 border-blue-500 text-blue-700 text-sm font-medium rounded-r-md flex gap-2">
-                    <Clock size={16} className="shrink-0 mt-0.5" />
-                    <span>{verificationMessage}</span>
-                  </div>
-                )}
-
-                <form onSubmit={handleVerificationSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Verification Code</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Mail size={16} className="text-slate-400" />
-                      </div>
-                      <input
-                        type="text"
-                        className="w-full pl-10 pr-3 py-3 bg-white border border-slate-200 text-slate-900 rounded-lg focus:ring-2 focus:ring-indigo-300 outline-none transition-all font-medium text-center tracking-wider"
-                        placeholder="Enter the code from your email"
-                        value={verificationCode}
-                        onChange={(e) => setVerificationCode(e.target.value)}
-                        maxLength="64"
-                      />
-                    </div>
-                    <p className="text-xs text-slate-500 mt-2">Check your email inbox or spam folder for the verification link or code.</p>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full bg-linear-to-r from-indigo-600 to-cyan-500 hover:from-indigo-700 hover:to-cyan-600 text-white font-bold tracking-wide py-3 rounded-lg mt-6 transition-all shadow-xl flex items-center justify-center gap-2 uppercase text-sm disabled:opacity-50"
-                  >
-                    {isSubmitting ? 'Verifying...' : 'Verify & Sign In'} <ArrowRight size={16} />
-                  </button>
-                </form>
-
-                <div className="mt-6 space-y-3 border-t border-slate-200 pt-6">
-                  <p className="text-xs text-slate-500 text-center">Didn't receive the email?</p>
-                  <button
-                    type="button"
-                    onClick={handleResendVerification}
-                    disabled={isSubmitting || resendCooldown > 0}
-                    className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-all disabled:opacity-50 text-sm"
-                  >
-                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Verification Email'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleBackToRegister}
-                    className="w-full py-2.5 px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold rounded-lg transition-all text-sm"
-                  >
-                    Back to Registration
-                  </button>
-                </div>
+            {error && (
+              <div className="mb-4 p-2.5 bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-medium rounded-xl text-center">
+                {error}
               </div>
+            )}
+            {verificationMessage && (
+              <div className="mb-4 p-2.5 bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-medium rounded-xl flex items-center justify-center gap-2">
+                <Clock size={14} className="shrink-0" />
+                <span>{verificationMessage}</span>
+              </div>
+            )}
+            <form onSubmit={handleVerificationSubmit} className="space-y-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1.5 text-center">Verification Code</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2.5 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl focus:ring-2 focus:ring-white/30 outline-none transition-all font-medium text-center tracking-widest text-sm"
+                    placeholder="Enter the code from your email"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value)}
+                    maxLength="64"
+                  />
+                </div>
+                <p className="text-[11px] text-white/40 mt-1.5 text-center">Check your email inbox or spam folder for the code.</p>
+              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-white/15 hover:bg-white/25 text-white font-bold tracking-wide py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-white/10"
+              >
+                {isSubmitting ? 'Verifying...' : 'Verify & Sign In'} <ArrowRight size={14} />
+              </button>
+            </form>
+            <div className="mt-5 space-y-2.5 border-t border-white/10 pt-4">
+              <p className="text-[11px] text-white/40 text-center">Didn't receive the email?</p>
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={isSubmitting || resendCooldown > 0}
+                className="w-full py-2 px-4 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white font-semibold rounded-xl transition-all disabled:opacity-40 text-xs backdrop-blur-sm border border-white/10"
+              >
+                {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Verification Email'}
+              </button>
+              <button
+                type="button"
+                onClick={handleBackToRegister}
+                className="w-full py-2 px-4 bg-white/5 hover:bg-white/15 text-white/70 hover:text-white font-semibold rounded-xl transition-all text-xs backdrop-blur-sm border border-white/5"
+              >
+                Back to Registration
+              </button>
             </div>
           </div>
         </div>
@@ -222,135 +200,129 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
 
   // Login/Registration form view
   return (
-    <div className="min-h-screen bg-slate-50 flex items-stretch justify-center p-4 md:p-6 font-sans text-slate-900">
-      <div className="w-full max-w-7xl min-h-[calc(100vh-2rem)] md:min-h-[calc(100vh-3rem)] bg-transparent rounded-2xl overflow-hidden shadow-none md:shadow-xl flex flex-col md:flex-row">
-        {/* Left split: welcome panel */}
-        <div className="w-full md:w-1/2 bg-linear-to-b from-indigo-600 via-indigo-500 to-cyan-500 text-white px-6 py-10 md:p-12 flex flex-col justify-center order-1 md:order-0 min-h-65 md:min-h-0">
-          <div className="max-w-md mx-auto md:mx-0 text-center md:text-left">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4">WELCOME</h2>
-            <h3 className="text-lg sm:text-xl font-semibold mb-4 opacity-90">FinAudit CRM — Finance & Risk</h3>
-            <p className="text-sm sm:text-base opacity-90 leading-relaxed max-w-xl mx-auto md:mx-0">Securely manage invoices, run audit scans, and track client solvency with an integrated financial CRM designed for audit teams and finance departments.</p>
-          </div>
-        </div>
-
-        {/* Right split: auth card */}
-        <div className="w-full md:w-1/2 flex items-center justify-center px-4 py-8 sm:px-6 md:p-6 order-2 md:order-0">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden">
-            <div className="p-6 sm:p-8">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-indigo-50 rounded-lg">
-                  <Building2 className="text-indigo-600" size={28} />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-black text-slate-900">FinAudit CRM</h1>
-                  <p className="text-sm text-slate-500">Enterprise Finance & Risk Management</p>
-                </div>
-              </div>
-
-              <div className="flex bg-slate-100 p-1 rounded-lg mb-6">
-                <button
-                  onClick={() => { setIsLogin(true); setError(''); }}
-                  className={`flex-1 py-2.5 text-sm font-semibold rounded-md transition-all ${
-                    isLogin ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => { setIsLogin(false); setError(''); }}
-                  className={`flex-1 py-2.5 text-sm font-semibold rounded-md transition-all ${
-                    !isLogin ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                  }`}
-                >
-                  Create Account
-                </button>
-              </div>
-
-              {error && (
-                <div className="mb-4 p-3 bg-rose-50 border-l-4 border-rose-500 text-rose-700 text-sm font-medium rounded-r-md">
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {!isLogin && (
-                  <>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Full Name</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <User size={16} className="text-slate-400" />
-                        </div>
-                        <input
-                          type="text"
-                          className="w-full pl-10 pr-3 py-3 bg-white border border-slate-200 text-slate-900 rounded-lg focus:ring-2 focus:ring-indigo-300 outline-none transition-all font-medium"
-                          placeholder="Jane Doe"
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Company Name (ICE)</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Briefcase size={16} className="text-slate-400" />
-                        </div>
-                        <input
-                          type="text"
-                          className="w-full pl-10 pr-3 py-3 bg-white border border-slate-200 text-slate-900 rounded-lg focus:ring-2 focus:ring-indigo-300 outline-none transition-all font-medium"
-                          placeholder="Acme Corp - 123456789"
-                          value={companyName}
-                          onChange={(e) => setCompanyName(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Email Address</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail size={16} className="text-slate-400" />
-                    </div>
-                    <input
-                      type="email"
-                      className="w-full pl-10 pr-3 py-3 bg-white border border-slate-200 text-slate-900 rounded-lg focus:ring-2 focus:ring-indigo-300 outline-none transition-all font-medium"
-                      placeholder="name@company.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Password</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock size={16} className="text-slate-400" />
-                    </div>
-                    <input
-                      type="password"
-                      className="w-full pl-10 pr-3 py-3 bg-white border border-slate-200 text-slate-900 rounded-lg focus:ring-2 focus:ring-indigo-300 outline-none transition-all font-medium"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-linear-to-r from-indigo-600 to-cyan-500 hover:from-indigo-700 hover:to-cyan-600 text-white font-bold tracking-wide py-3 rounded-lg mt-4 transition-all shadow-xl flex items-center justify-center gap-2 uppercase text-sm"
-                >
-                  {isSubmitting ? 'Please wait...' : isLogin ? 'Sign In Securely' : 'Complete Setup'} <ArrowRight size={16} />
-                </button>
-              </form>
+    <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden font-sans">
+      {/* Neon glow - bottom-left golden/orange */}
+      <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.25) 0%, rgba(234,88,12,0.10) 50%, transparent 70%)' }} />
+      {/* Neon glow - right pink/purple */}
+      <div className="absolute -top-20 -right-20 w-[450px] h-[450px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(217,70,239,0.25) 0%, rgba(147,51,234,0.10) 50%, transparent 70%)' }} />
+      {/* Circular glass card */}
+      <div className="w-[500px] h-[500px] rounded-full bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
+        <div className="w-full max-w-[340px] space-y-3">
+          {/* Logo & Title */}
+          <div className="flex items-center gap-3 justify-center mb-1">
+            <div className="p-2.5 bg-white/10 rounded-xl">
+              <Building2 className="text-white" size={26} />
             </div>
+            <div>
+              <h1 className="text-xl font-bold text-white">FinAudit CRM</h1>
+              <p className="text-[11px] text-white/50">Enterprise Finance & Risk Management</p>
+            </div>
+          </div>
+          {/* Tab buttons */}
+          <div className="flex bg-white/10 p-1 rounded-xl backdrop-blur-sm border border-white/10">
+            <button
+              onClick={() => { setIsLogin(true); setError(''); }}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${isLogin ? 'bg-white/20 text-white shadow-sm' : 'text-white/50 hover:text-white/80'}`}
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => { setIsLogin(false); setError(''); }}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${!isLogin ? 'bg-white/20 text-white shadow-sm' : 'text-white/50 hover:text-white/80'}`}
+            >
+              Create Account
+            </button>
+          </div>
+          {error && (
+            <div className="p-2.5 bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-medium rounded-xl text-center">
+              {error}
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-2.5">
+            {!isLogin && (
+              <>
+                <div>
+                  <label className="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1">Full Name</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full px-4 py-2.5 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl focus:ring-2 focus:ring-white/30 outline-none transition-all font-medium text-sm pr-10"
+                      placeholder="Jane Doe"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <User size={15} className="text-white/60" />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1">Company Name (ICE)</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full px-4 py-2.5 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl focus:ring-2 focus:ring-white/30 outline-none transition-all font-medium text-sm pr-10"
+                      placeholder="Acme Corp - 123456789"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <Briefcase size={15} className="text-white/60" />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+            <div>
+              <label className="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1">Email Address</label>
+              <div className="relative">
+                <input
+                  type="email"
+                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl focus:ring-2 focus:ring-white/30 outline-none transition-all font-medium text-sm pr-10"
+                  placeholder="name@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <Mail size={15} className="text-white/60" />
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1">Password</label>
+              <div className="relative">
+                <input
+                  type="password"
+                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl focus:ring-2 focus:ring-white/30 outline-none transition-all font-medium text-sm pr-10"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <Lock size={15} className="text-white/60" />
+                </div>
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-white/15 hover:bg-white/25 text-white font-bold tracking-wider py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-white/10"
+            >
+              {isSubmitting ? 'Please wait...' : isLogin ? 'LOGIN' : 'REGISTER'} <ArrowRight size={14} />
+            </button>
+          </form>
+          {/* Footer links */}
+          <div className="flex items-center justify-between pt-1">
+            <label className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors cursor-pointer text-xs">
+              <input type="checkbox" className="accent-white/50 rounded" />
+              Remember me
+            </label>
+            <button type="button" onClick={(e) => e.preventDefault()} className="text-white/70 hover:text-white transition-colors text-xs">
+              Forgot password?
+            </button>
           </div>
         </div>
       </div>

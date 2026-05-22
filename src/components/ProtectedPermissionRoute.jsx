@@ -9,7 +9,7 @@ export default function ProtectedPermissionRoute({ action, children, fallback = 
     if (fallback) return fallback;
 
     return (
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-700">
+      <div className="rounded-2xl border border-amber-500/30 bg-amber-500/15 p-4 text-xs text-amber-300 backdrop-blur-sm">
         You do not have permission to access this section.
       </div>
     );

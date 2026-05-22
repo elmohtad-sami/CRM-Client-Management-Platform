@@ -11,7 +11,7 @@ import { useUser } from '../../context/UserContext';
 import { hasPermission } from '../../utils/permissions';
 import { useClients } from '../../context/ClientsContext';
 
-export default function ClientDetailsPage({ clientId, onBack }) {
+export default function ClientDetailsPage({ clientId, onBack, startEditClient, changeView }) {
   const { id } = useParams();
   const resolvedClientId = String(id || clientId || '');
   const { role } = useUser();
@@ -36,13 +36,13 @@ export default function ClientDetailsPage({ clientId, onBack }) {
 
   if (!client) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-700 shadow-sm">
-        <p className="text-base font-semibold text-slate-900">Client unavailable</p>
-        <p className="mt-1 text-sm text-slate-600">We could not load this client profile. Please return to the dashboard and try again.</p>
+      <div className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6 text-white/70">
+        <p className="text-base font-semibold text-white">Client unavailable</p>
+        <p className="mt-1 text-sm text-white/60">We could not load this client profile. Please return to the dashboard and try again.</p>
         <button
           type="button"
           onClick={() => onBack?.()}
-          className="mt-4 inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+          className="mt-4 inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
         >
           Back to Dashboard
         </button>
@@ -51,6 +51,15 @@ export default function ClientDetailsPage({ clientId, onBack }) {
   }
 
   const handleEditClient = () => {
+    if (typeof startEditClient === 'function') {
+      startEditClient(client);
+      if (typeof changeView === 'function') {
+        changeView('clients-management');
+      }
+      return;
+    }
+
+    // Fallback: apply a small, simple update when no edit handler is provided
     updateClient(client._id, {
       riskScore: Math.max(0, Math.min(100, Number(client.riskScore || 0) - 1)),
       delayDays: Number(client.delayDays || 0) + 1
@@ -81,9 +90,9 @@ export default function ClientDetailsPage({ clientId, onBack }) {
         canDelete={canDeleteClient}
       />
 
-      <div className="rounded-2xl border border-slate-200 bg-white px-6 py-4 shadow-sm">
+      <div className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <p className="text-sm font-medium text-slate-600">
+          <p className="text-sm font-medium text-white/60">
             Use the edit and delete actions below to manage this client record. Activity Timeline is read-only.
           </p>
           <div className="flex flex-wrap gap-2">
@@ -91,7 +100,7 @@ export default function ClientDetailsPage({ clientId, onBack }) {
               <button
                 type="button"
                 onClick={handleEditClient}
-                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+                className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white rounded-xl backdrop-blur-sm border border-white/10 px-4 py-2.5 text-xs uppercase tracking-wider font-bold transition-colors"
               >
                 Edit Client
               </button>
@@ -100,7 +109,7 @@ export default function ClientDetailsPage({ clientId, onBack }) {
               <button
                 type="button"
                 onClick={handleDeleteClient}
-                className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-100 transition-colors"
+                className="inline-flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-2.5 text-xs uppercase tracking-wider font-bold text-rose-300 hover:bg-rose-500/20 transition-colors"
               >
                 Delete Client
               </button>
@@ -118,7 +127,18 @@ export default function ClientDetailsPage({ clientId, onBack }) {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <NotesSection clientId={client._id} notes={client.notes || []} canAdd={canAddNotes} />
-        <DocumentsSection documents={client.documents || []} canUpload={canUploadDocuments} onUpload={handleUploadDocument} />
+        <DocumentsSection
+          documents={client.documents || []}
+          canUpload={canUploadDocuments}
+          onUpload={handleUploadDocument}
+          onView={(doc) => {
+            if (doc?.url) {
+              window.open(doc.url, '_blank', 'noopener,noreferrer');
+              return;
+            }
+            alert('No preview available for this document.');
+          }}
+        />
       </div>
 
       <ActivityTimeline clientId={client._id} activities={client.activities || []} />

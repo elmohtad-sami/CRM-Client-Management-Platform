@@ -2,31 +2,31 @@ import React from 'react';
 import { ArrowLeft, Edit2, Trash2 } from 'lucide-react';
 
 const statusColors = {
-  Solvable: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  'Fidèle': 'bg-blue-50 text-blue-700 border-blue-200',
-  Insolvable: 'bg-rose-50 text-rose-700 border-rose-200'
+  Solvable: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
+  'Fidèle': 'bg-blue-500/15 text-blue-300 border-blue-500/30',
+  Insolvable: 'bg-rose-500/15 text-rose-300 border-rose-500/30'
 };
 
 export default function ClientHeader({ client, onBack, onEdit, onDelete, canEdit, canDelete }) {
   return (
-    <section className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm transition-all duration-300">
+    <section className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6 transition-all duration-300">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-3 min-w-0">
           <button
             onClick={onBack}
-            className="h-10 w-10 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 transition-colors inline-flex items-center justify-center"
+            className="h-10 w-10 rounded-xl border border-white/[0.12] bg-white/[0.04] text-white/60 hover:bg-white/10 transition-colors inline-flex items-center justify-center"
             title="Back"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={16} />
           </button>
           <div className="min-w-0">
-            <h1 className="text-2xl font-black text-slate-900 truncate">{client.name}</h1>
-            <p className="text-sm text-slate-500 truncate">{client.company}</p>
+            <h1 className="text-2xl font-black text-white truncate">{client.name}</h1>
+            <p className="text-xs text-white/50 truncate">{client.company}</p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${statusColors[client.status] || statusColors.Solvable}`}>
                 {client.status}
               </span>
-              <span className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700">
+              <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-white/80">
                 Risk Score: {client.riskScore}
               </span>
             </div>
@@ -37,17 +37,17 @@ export default function ClientHeader({ client, onBack, onEdit, onDelete, canEdit
           {canEdit && (
             <button
               onClick={onEdit}
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
+              className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white rounded-xl backdrop-blur-sm border border-white/10 px-4 py-2.5 text-xs uppercase tracking-wider font-bold transition-colors"
             >
-              <Edit2 size={16} /> Edit
+              <Edit2 size={14} /> Edit
             </button>
           )}
           {canDelete && (
             <button
               onClick={onDelete}
-              className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-100 transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-2.5 text-xs uppercase tracking-wider font-bold text-rose-300 hover:bg-rose-500/20 transition-colors"
             >
-              <Trash2 size={16} /> Delete
+              <Trash2 size={14} /> Delete
             </button>
           )}
         </div>

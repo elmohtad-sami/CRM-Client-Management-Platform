@@ -36,7 +36,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/clients', authenticateToken, clientRoutes);
 
 app.use(errorHandler);
-
+//connection db and start server
 if (process.env.VERCEL) {
   connectDB();
   module.exports = app;

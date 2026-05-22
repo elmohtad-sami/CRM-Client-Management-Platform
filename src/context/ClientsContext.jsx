@@ -539,8 +539,21 @@ export function ClientsProvider({ children }) {
 
         const normalizedCreatedInvoices = (createdClient.invoices || []).map((entry) => normalizeInvoice(entry, createdClient.name));
         setInvoices((current) => {
-          const otherInvoices = current.filter((entry) => String(entry.clientId || '').trim().toLowerCase() !== String(clientId).trim().toLowerCase());
-          return [...normalizedCreatedInvoices, ...otherInvoices];
+          const nextInvoices = [...current];
+
+          normalizedCreatedInvoices.forEach((entry) => {
+            const normalizedEntry = normalizeInvoice(entry, createdClient);
+            const existingIndex = nextInvoices.findIndex((invoice) => String(invoice.id) === String(normalizedEntry.id));
+
+            if (existingIndex === -1) {
+              nextInvoices.unshift(normalizedEntry);
+              return;
+            }
+
+            nextInvoices[existingIndex] = normalizedEntry;
+          });
+
+          return nextInvoices;
         });
 
         return createdClient;
