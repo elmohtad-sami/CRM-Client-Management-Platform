@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
-import { DollarSign, ShieldAlert, Activity, Star, ShieldCheck } from 'lucide-react';
+import { DollarSignIcon, ShieldXIcon, ActivityIcon, StarIcon, ShieldCheckIcon } from '@animateicons/react/lucide';
 import InvoiceCreator from './InvoiceCreator';
 import ReportDownloadButton from './ReportDownloadButton';
 import PrintDashboardReport from './PrintDashboardReport';
@@ -65,7 +65,7 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
             <p className="text-xs text-white/50 mt-1">Real-time overview of your portfolio performance and risk metrics</p>
           </div>
           <div className="flex items-center gap-2">
-            <ReportDownloadButton contentRef={dashboardRef} />
+            <ReportDownloadButton stats={stats} monthlyRevenueData={monthlyRevenueData} />
             <InvoiceCreator />
           </div>
         </div>
@@ -81,7 +81,7 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
                 <p className="text-[11px] text-emerald-400/70 mt-1 font-medium">Current fiscal period</p>
               </div>
               <div className="w-11 h-11 rounded-xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center shrink-0 ml-3">
-                <DollarSign size={20} />
+                <DollarSignIcon size={20} />
               </div>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
                 </div>
               </div>
               <div className="w-11 h-11 rounded-xl bg-white/15 text-white flex items-center justify-center shrink-0 ml-3">
-                <Activity size={20} />
+                <ActivityIcon size={20} />
               </div>
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
                 </p>
               </div>
               <div className="w-11 h-11 rounded-xl bg-rose-500/15 text-rose-300 flex items-center justify-center shrink-0 ml-3">
-                <ShieldAlert size={20} />
+                <ShieldXIcon size={20} />
               </div>
             </div>
           </div>
@@ -185,7 +185,7 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
                 <button onClick={() => changeView('solvable')} className="w-full flex items-center justify-between bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] p-3 rounded-xl transition-all group">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                      <ShieldCheck size={16} />
+                      <ShieldCheckIcon size={16} />
                     </div>
                     <div className="text-left min-w-0">
                       <p className="font-semibold text-emerald-50 text-xs truncate">Solvable</p>
@@ -200,7 +200,7 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
                 <button onClick={() => changeView('fidèle')} className="w-full flex items-center justify-between bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] p-3 rounded-xl transition-all group">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-                      <Star size={16} />
+                      <StarIcon size={16} />
                     </div>
                     <div className="text-left min-w-0">
                       <p className="font-semibold text-blue-50 text-xs truncate">Fidèle</p>
@@ -215,7 +215,7 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
                 <button onClick={() => changeView('insolvable')} className="w-full flex items-center justify-between bg-white/[0.04] hover:bg-white/[0.08] border border-rose-500/30 p-3 rounded-xl transition-all group">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center shrink-0">
-                      <ShieldAlert size={16} />
+                      <ShieldXIcon size={16} />
                     </div>
                     <div className="text-left min-w-0">
                       <p className="font-semibold text-red-50 text-xs truncate">Insolvable</p>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { CircleCheckIcon, InfoIcon, EyeIcon, EyeOffIcon } from '@animateicons/react/lucide';
 
 export default function SettingsView({
   user,
@@ -25,15 +25,12 @@ export default function SettingsView({
   const isMessageSuccess = settingsMessage?.toLowerCase().includes('success') || settingsMessage?.toLowerCase().includes('updated');
 
   const handleEditToggle = () => {
-    if (isEditingProfile) {
-      // Reset form when canceling
-      setProfileForm({
-        fullName: user?.fullName || '',
-        email: user?.email || '',
-        companyName: user?.companyName || '',
-        profileImage: user?.profileImage || ''
-      });
-    }
+    setProfileForm({
+      fullName: user?.fullName || '',
+      email: user?.email || '',
+      companyName: user?.companyName || '',
+      profileImage: user?.profileImage || ''
+    });
     setIsEditingProfile(prev => !prev);
   };
 
@@ -145,7 +142,7 @@ export default function SettingsView({
                   </>
                 ) : (
                   <>
-                    <CheckCircle size={14} />
+                    <CircleCheckIcon size={14} />
                     Save Profile
                   </>
                 )}
@@ -204,7 +201,7 @@ export default function SettingsView({
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
                 >
-                  {showCurrentPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showCurrentPassword ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
                 </button>
               </div>
             </div>
@@ -225,7 +222,7 @@ export default function SettingsView({
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
                 >
-                  {showNewPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showNewPassword ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
                 </button>
               </div>
             </div>
@@ -246,7 +243,7 @@ export default function SettingsView({
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
                 >
-                  {showConfirmPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showConfirmPassword ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
                 </button>
               </div>
             </div>
@@ -255,7 +252,7 @@ export default function SettingsView({
               type="submit"
               className="w-full rounded-xl bg-white/15 px-4 py-2.5 text-xs uppercase tracking-wider font-bold text-white transition-colors hover:bg-white/25 flex items-center justify-center gap-2 backdrop-blur-sm border border-white/10"
             >
-              <CheckCircle size={14} />
+              <CircleCheckIcon size={14} />
               Update Password
             </button>
           </form>
@@ -270,9 +267,9 @@ export default function SettingsView({
               : 'border-white/[0.12] bg-white/[0.04]'
           }`}>
             {isMessageError ? (
-              <AlertCircle className="h-5 w-5 text-rose-300 shrink-0 mt-0.5" />
+              <InfoIcon className="h-5 w-5 text-rose-300 shrink-0 mt-0.5" />
             ) : isMessageSuccess ? (
-              <CheckCircle className="h-5 w-5 text-emerald-300 shrink-0 mt-0.5" />
+              <CircleCheckIcon className="h-5 w-5 text-emerald-300 shrink-0 mt-0.5" />
             ) : null}
             <p className={`text-xs ${
               isMessageError

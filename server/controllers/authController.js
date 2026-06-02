@@ -14,8 +14,6 @@ const buildUserResponse = (user) => ({
   profileImage: user.profileImage || ''
 });
 
-const isProductionEnvironment = process.env.NODE_ENV === 'production';
-
 const signToken = (user) => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
@@ -51,8 +49,8 @@ exports.register = asyncHandler(async (req, res, next) => {
 
   const passwordHash = await bcrypt.hash(password, 12);
   
-  // Generate a 6-digit verification code
-  const verificationToken = String(crypto.randomInt(100000, 1000000));
+  // Generate verification token
+  const verificationToken = crypto.randomBytes(32).toString('hex');
   const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
   const user = await User.create({
@@ -70,16 +68,12 @@ exports.register = asyncHandler(async (req, res, next) => {
     await sendVerificationEmail(normalizedEmail, user.fullName, verificationToken);
   } catch (emailError) {
     console.error('Registration: Email send failed:', emailError.message);
-    // Keep local registration usable even when mail delivery is broken.
-    if (isProductionEnvironment) {
-      await User.findByIdAndDelete(user._id);
-      return res.status(500).json({ message: 'Failed to send verification email. Please try again.' });
-    }
-    console.warn('Registration: continuing without verification email in non-production mode');
   }
 
+  const token = signToken(user);
   return res.status(201).json({ 
-    message: 'Registration successful. Please check your email to verify your account.',
+    message: 'Registration successful.',
+    token,
     user: buildUserResponse(user) 
   });
 });
@@ -224,8 +218,8 @@ exports.resendVerificationEmail = asyncHandler(async (req, res, next) => {
     return res.status(400).json({ message: 'Email is already verified' });
   }
 
-  // Generate a new 6-digit verification code
-  const verificationToken = String(crypto.randomInt(100000, 1000000));
+  // Generate new verification token
+  const verificationToken = crypto.randomBytes(32).toString('hex');
   const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
   user.verificationToken = verificationToken;

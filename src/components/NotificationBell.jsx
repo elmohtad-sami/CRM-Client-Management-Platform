@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Bell } from 'lucide-react';
+import { BellIcon } from '@animateicons/react/lucide';
 import { useClients } from '../context/ClientsContext';
 
 const WINDOW_MS = 48 * 60 * 60 * 1000;
 
-export default function NotificationBell() {
+export default function NotificationBellIcon() {
   const { invoices } = useClients();
   const [isOpen, setIsOpen] = useState(false);
   const [readKeys, setReadKeys] = useState([]);
@@ -81,7 +81,7 @@ export default function NotificationBell() {
         aria-label="Notifications"
         title="Notifications"
       >
-        <Bell size={16} />
+        <BellIcon size={16} />
         {unreadCount > 0 && (
           <span className={`absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white ${pulse ? 'animate-bounce' : ''}`}>
             {unreadCount}

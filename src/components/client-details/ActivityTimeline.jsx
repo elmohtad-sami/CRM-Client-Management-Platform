@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useClients } from '../../context/ClientsContext';
-import { Edit2, Trash2, Check, X } from 'lucide-react';
+import { UserPenIcon, Trash2Icon, CheckIcon, XIcon } from '@animateicons/react/lucide';
 
 export default function ActivityTimeline({ clientId, activities }) {
   const [localActivities, setLocalActivities] = useState(activities);
@@ -123,7 +123,7 @@ export default function ActivityTimeline({ clientId, activities }) {
                           className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-white/80 transition-colors hover:bg-white/20"
                           title="Save activity"
                         >
-                          <Check size={14} />
+                          <CheckIcon size={14} />
                         </button>
                         <button
                           type="button"
@@ -131,7 +131,7 @@ export default function ActivityTimeline({ clientId, activities }) {
                           className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.12] bg-white/[0.04] text-white/50 transition-colors hover:bg-white/10"
                           title="Cancel edit"
                         >
-                          <X size={14} />
+                          <XIcon size={14} />
                         </button>
                       </>
                     ) : (
@@ -141,7 +141,7 @@ export default function ActivityTimeline({ clientId, activities }) {
                         className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.12] bg-white/10 text-white/70 hover:bg-white/20 transition-colors"
                         title="Edit activity"
                       >
-                        <Edit2 size={14} />
+                        <UserPenIcon size={14} />
                       </button>
                     )}
                     <button
@@ -150,7 +150,7 @@ export default function ActivityTimeline({ clientId, activities }) {
                       className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition-colors"
                       title="Delete activity"
                     >
-                      <Trash2 size={14} />
+                      <Trash2Icon size={14} />
                     </button>
                   </div>
                 </div>

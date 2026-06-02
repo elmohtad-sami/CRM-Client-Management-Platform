@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, BookOpen, AlertCircle } from 'lucide-react';
+import { XIcon, BookOpenIcon, InfoIcon } from '@animateicons/react/lucide';
 
 export default function AuditDrawer({
   isDrawerOpen,
@@ -15,11 +15,11 @@ export default function AuditDrawer({
         
         <div className="flex items-center justify-between p-6 bg-rose-500/10 border-b border-rose-500/20">
           <div className="flex items-center gap-2 text-rose-300">
-            <BookOpen className="text-rose-300" size={22} />
+            <BookOpenIcon className="text-rose-300" size={22} />
             <h2 className="text-xl font-black">Audit Diagnosis</h2>
           </div>
           <button onClick={() => setIsDrawerOpen(false)} className="text-rose-300 hover:text-white hover:bg-rose-500/20 p-2 rounded-full transition-colors">
-            <X size={18} />
+            <XIcon size={18} />
           </button>
         </div>
 
@@ -41,7 +41,7 @@ export default function AuditDrawer({
               {selectedInvoice.flags && selectedInvoice.flags.length > 0 && (
                 <div>
                   <h3 className="text-xs font-semibold text-white/40 uppercase tracking-widest flex items-center gap-2 border-b border-white/[0.08] pb-3 mb-4">
-                    <AlertCircle size={14} className="text-rose-500" /> Regulatory Violations
+                    <InfoIcon size={14} className="text-rose-500" /> Regulatory Violations
                   </h3>
                   <div className="space-y-4">
                     {selectedInvoice.flags.map((flag, idx) => (

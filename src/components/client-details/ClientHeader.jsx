@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Edit2, Trash2 } from 'lucide-react';
+import { ChevronLeftIcon, UserPenIcon, Trash2Icon } from '@animateicons/react/lucide';
 
 const statusColors = {
   Solvable: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30',
@@ -17,7 +17,7 @@ export default function ClientHeader({ client, onBack, onEdit, onDelete, canEdit
             className="h-10 w-10 rounded-xl border border-white/[0.12] bg-white/[0.04] text-white/60 hover:bg-white/10 transition-colors inline-flex items-center justify-center"
             title="Back"
           >
-            <ArrowLeft size={16} />
+            <ChevronLeftIcon size={16} />
           </button>
           <div className="min-w-0">
             <h1 className="text-2xl font-black text-white truncate">{client.name}</h1>
@@ -39,7 +39,7 @@ export default function ClientHeader({ client, onBack, onEdit, onDelete, canEdit
               onClick={onEdit}
               className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white rounded-xl backdrop-blur-sm border border-white/10 px-4 py-2.5 text-xs uppercase tracking-wider font-bold transition-colors"
             >
-              <Edit2 size={14} /> Edit
+              <UserPenIcon size={14} /> Edit
             </button>
           )}
           {canDelete && (
@@ -47,7 +47,7 @@ export default function ClientHeader({ client, onBack, onEdit, onDelete, canEdit
               onClick={onDelete}
               className="inline-flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-2.5 text-xs uppercase tracking-wider font-bold text-rose-300 hover:bg-rose-500/20 transition-colors"
             >
-              <Trash2 size={14} /> Delete
+              <Trash2Icon size={14} /> Delete
             </button>
           )}
         </div>

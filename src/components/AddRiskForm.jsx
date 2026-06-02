@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { ShieldXIcon, TriangleAlertIcon, CircleCheckIcon } from '@animateicons/react/lucide';
 
 export default function AddRiskForm({ onAddRisk }) {
   const [description, setDescription] = useState('');
@@ -29,7 +29,7 @@ export default function AddRiskForm({ onAddRisk }) {
     <div className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-6 shadow-[0_0_40px_rgba(255,255,255,0.03)] animate-in fade-in slide-in-from-bottom-4 duration-500 mb-8">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-full bg-rose-500/15 text-rose-300 flex items-center justify-center">
-          <ShieldAlert size={18} />
+          <ShieldXIcon size={18} />
         </div>
         <div>
           <h3 className="text-lg font-bold text-white">Report New Risk Anomaly</h3>

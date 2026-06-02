@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { AlertTriangle, TrendingUp } from 'lucide-react';
+import { TriangleAlertIcon, TrendingUpIcon } from '@animateicons/react/lucide';
 import InvoiceCreator from '../components/InvoiceCreator';
 
 // Custom Tooltip Component (declared outside render)
@@ -106,7 +106,7 @@ const Dashboard = () => {
                 <p className="mt-2 text-xs text-green-600 font-semibold">↑ 12% from last month</p>
               </div>
               <div className="rounded-full bg-gradient-to-br from-purple-100 to-purple-50 p-3">
-                <TrendingUp className="text-purple-600" size={28} />
+                <TrendingUpIcon className="text-purple-600" size={28} />
               </div>
             </div>
           </div>
@@ -120,7 +120,7 @@ const Dashboard = () => {
                 <p className="mt-2 text-xs text-blue-600 font-semibold">1 out of 1 verified</p>
               </div>
               <div className="rounded-full bg-gradient-to-br from-blue-100 to-blue-50 p-3">
-                <TrendingUp className="text-blue-600" size={28} />
+                <TrendingUpIcon className="text-blue-600" size={28} />
               </div>
             </div>
           </div>
@@ -134,7 +134,7 @@ const Dashboard = () => {
                 <p className="mt-2 text-xs text-orange-600 font-semibold">Active incidents</p>
               </div>
               <div className="rounded-full bg-gradient-to-br from-orange-100 to-orange-50 p-3">
-                <AlertTriangle className="text-orange-600" size={28} />
+                <TriangleAlertIcon className="text-orange-600" size={28} />
               </div>
             </div>
           </div>
@@ -203,7 +203,7 @@ const Dashboard = () => {
             {/* Insolvable Clients */}
             <div className="flex items-center rounded-lg bg-red-600 bg-opacity-20 p-4">
               <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500 bg-opacity-30">
-                <AlertTriangle className="text-red-400" size={24} />
+                <TriangleAlertIcon className="text-red-400" size={24} />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-300">Insolvable Clients</p>

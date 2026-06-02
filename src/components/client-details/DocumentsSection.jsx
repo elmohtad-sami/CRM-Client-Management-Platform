@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload, Eye } from 'lucide-react';
+import { UploadIcon, EyeIcon } from '@animateicons/react/lucide';
 
 export default function DocumentsSection({ documents = [], canUpload, onUpload, onView }) {
   const handleFileChange = (event) => {
@@ -24,7 +24,7 @@ export default function DocumentsSection({ documents = [], canUpload, onUpload, 
 
       {canUpload && (
         <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/[0.15] bg-white/[0.04] px-6 py-8 text-center transition-colors hover:border-white/30 hover:bg-white/10">
-          <Upload size={20} className="text-white" />
+          <UploadIcon size={20} className="text-white" />
           <span className="mt-3 text-sm font-semibold text-white">Upload documents</span>
           <span className="mt-1 text-[11px] text-white/50">Front-end only (mock UI)</span>
           <input
@@ -76,7 +76,7 @@ export default function DocumentsSection({ documents = [], canUpload, onUpload, 
                 title="View document"
                 className="inline-flex items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-1 text-xs font-semibold text-white/70 hover:bg-white/10 transition-colors"
               >
-                <Eye size={14} />
+                <EyeIcon size={14} />
                 View
               </button>
 

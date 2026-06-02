@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Building2, Users, AlertCircle, Plus, 
-  Trash2, Edit2, X, Activity, DollarSign, 
-  Filter, Receipt, ShieldAlert, ChevronRight, BookOpen, Star, ShieldCheck, CheckCircle2, AlertTriangle, LogOut, Menu, Settings
-} from 'lucide-react';
+  BlocksIcon, UsersIcon, InfoIcon, PlusIcon, 
+  Trash2Icon, UserPenIcon, XIcon, ActivityIcon, DollarSignIcon, 
+  SlidersHorizontalIcon, ClipboardIcon, ShieldXIcon, ChevronRightIcon, BookOpenIcon, StarIcon, ShieldCheckIcon, CircleCheckIcon, TriangleAlertIcon, MenuIcon, SettingsIcon
+} from '@animateicons/react/lucide';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import AuthPage from './components/AuthPage';
 import FilteredClientList from './components/FilteredClientList';
@@ -20,11 +20,12 @@ import AuditDrawer from './components/AuditDrawer';
 import { useUser } from './context/UserContext';
 import { useClients } from './context/ClientsContext';
 import NotificationBell from './components/NotificationBell';
+import SettingsDropdown from './components/SettingsDropdown';
 import { authApi } from './api/auth';
 
 export default function App() {
   const navigate = useNavigate();
-  const { role, currentUser: user, token, login, logout, isAuthenticated, isLoading } = useUser();
+  const { role, user, token, login, logout, isAuthenticated, isLoading } = useUser();
   const { clients, invoices, setInvoices, createInvoice, updateClientInvoice, addClient, updateClient, deleteClient } = useClients();
 
   const normalizeClientStatus = (value) => {
@@ -65,6 +66,7 @@ export default function App() {
   const [selectedInvoice, setSelectedInvoice] = useState(null); 
   const [editingId, setEditingId] = useState(null);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  const [isHoveringSidebar, setIsHoveringSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 1024 : false));
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -73,9 +75,7 @@ export default function App() {
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [settingsMessage, setSettingsMessage] = useState('');
   const [invoiceError, setInvoiceError] = useState('');
-  const [sidebarRefreshTrigger, setSidebarRefreshTrigger] = useState(0);
-  // Local copy of user specifically for the sidebar to ensure immediate updates
-  const [sidebarUser, setSidebarUser] = useState(() => user || null);
+
   const [clientForm, setClientForm] = useState({
     name: '',
     company: '',
@@ -138,10 +138,7 @@ export default function App() {
         companyName: user.companyName || '',
         profileImage: user.profileImage || ''
       });
-      // Sync sidebar local user copy as well
-      setSidebarUser(user || null);
-      // Trigger sidebar refresh whenever user profile data changes
-      setSidebarRefreshTrigger(prev => prev + 1);
+
     }
   }, [user]);
 
@@ -151,8 +148,6 @@ export default function App() {
       const newUser = e?.detail || null;
       if (!newUser) {
         setProfileForm({ fullName: '', email: '', companyName: '', profileImage: '' });
-        setSidebarUser(null);
-        setSidebarRefreshTrigger(prev => prev + 1);
         return;
       }
       setProfileForm({
@@ -161,9 +156,6 @@ export default function App() {
         companyName: newUser.companyName || '',
         profileImage: newUser.profileImage || ''
       });
-      // Update sidebar local copy immediately
-      setSidebarUser(newUser || null);
-      setSidebarRefreshTrigger(prev => prev + 1);
     };
 
     if (typeof window !== 'undefined' && window.addEventListener) {
@@ -425,27 +417,14 @@ export default function App() {
         }
       }
 
-      // Update user context with new data
-      // Update user context with new data
       login(payload);
-      // Ensure sidebar local copy is immediately updated with server response
-      try {
-        setSidebarUser(payload.user || null);
-        console.debug('handleSaveProfile: updated sidebarUser with payload.user', payload.user);
-      } catch (e) {
-        console.debug('handleSaveProfile: failed to setSidebarUser', e);
-      }
-      
-      // Update form with response data
+
       setProfileForm({
         fullName: payload.user.fullName || '',
         email: payload.user.email || '',
         companyName: payload.user.companyName || '',
         profileImage: payload.user.profileImage || ''
       });
-      
-      // Force sidebar refresh
-      setSidebarRefreshTrigger(prev => prev + 1);
       
       setSettingsMessage('Success: Profile updated successfully!');
       setIsEditingProfile(false);
@@ -703,7 +682,7 @@ export default function App() {
   };
 
   const selectedClientData = clientsData.find(c => c.name === selectedClientName);
-  const showSidebarLabels = isMobile || isSidebarExpanded;
+  const showSidebarLabels = isMobile || isSidebarExpanded || isHoveringSidebar;
   const isSettingsPage = currentView === 'settings';
   const isClientManagementPage = currentView === 'clients-management';
   const roleBadgeClasses = {
@@ -755,10 +734,14 @@ export default function App() {
       )}
       
       {/* === SIDEBAR (DARK) === */}
-      <div data-print-hide className={`${
+      <div
+        data-print-hide
+        onMouseEnter={() => setIsHoveringSidebar(true)}
+        onMouseLeave={() => setIsHoveringSidebar(false)}
+        className={`${
         isMobile
           ? `fixed inset-y-0 left-0 w-72 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} z-40`
-          : `${isSidebarExpanded ? 'w-72' : 'w-20'} relative translate-x-0 z-20`
+          : `${isSidebarExpanded || isHoveringSidebar ? 'w-72' : 'w-20'} relative translate-x-0 z-20`
       } bg-black/50 backdrop-blur-xl border-r border-white/[0.08] text-white/60 flex flex-col shadow-[0_0_40px_rgba(255,255,255,0.03)] shrink-0 transition-all duration-300 ease-in-out overflow-hidden`}>
         <div className="p-6 border-b border-white/[0.08] flex items-center justify-between">
           {showSidebarLabels && (
@@ -770,9 +753,9 @@ export default function App() {
                   className="h-10 w-10 rounded-xl object-cover ring-1 ring-white/20 shadow-lg shadow-indigo-500/20"
                 />
               ) : (
-                <Building2 className="text-indigo-400" size={28}/>
+                <BlocksIcon className="text-indigo-400" size={28}/>
               )}
-              <h1 className="text-2xl font-bold tracking-tight whitespace-nowrap">FinAudit CRM</h1>
+              <h1 className="text-2xl font-bold tracking-tight whitespace-nowrap">FinAudit Finance</h1>
             </div>
           )}
           {!showSidebarLabels && (
@@ -783,7 +766,7 @@ export default function App() {
                 className="h-10 w-10 rounded-xl object-cover ring-1 ring-white/20 shadow-lg shadow-indigo-500/20"
               />
             ) : (
-              <Building2 className="text-indigo-400" size={28}/>
+              <BlocksIcon className="text-indigo-400" size={28}/>
             )
           )}
           <button
@@ -791,7 +774,7 @@ export default function App() {
             className="ml-auto p-2 hover:bg-white/10 rounded-lg transition-colors text-white/50 hover:text-white/80 shrink-0"
             title={showSidebarLabels ? 'Collapse sidebar' : 'Expand sidebar'}
           >
-            {showSidebarLabels ? <X size={18} /> : <Menu size={18} />}
+            {showSidebarLabels ? <XIcon size={18} /> : <MenuIcon size={18} />}
           </button>
         </div>
 
@@ -804,7 +787,7 @@ export default function App() {
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium tracking-wider ${!selectedClientName && currentView === 'dashboard' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80'}`}
               title="Global Dashboard"
             >
-              <Activity size={18} /> 
+              <ActivityIcon size={18} /> 
               {showSidebarLabels && <span>Global Dashboard</span>}
             </button>
             <button
@@ -812,7 +795,7 @@ export default function App() {
               className={`mt-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium tracking-wider ${!selectedClientName && currentView === 'clients-management' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80'}`}
               title="Client Management"
             >
-              <Users size={18} />
+              <UsersIcon size={18} />
               {showSidebarLabels && <span>Client Management</span>}
             </button>
           </div>
@@ -828,7 +811,7 @@ export default function App() {
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'solvable' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80 border border-transparent'}`}
                 title="Solvable Clients"
               >
-                <span className="text-emerald-400"><ShieldCheck size={16}/></span> 
+                <span className="text-emerald-400"><ShieldCheckIcon size={16}/></span> 
                 {showSidebarLabels && <span>Solvable Clients</span>}
               </button>
               <button 
@@ -836,7 +819,7 @@ export default function App() {
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'fidèle' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80 border border-transparent'}`}
                 title="Fidèle Clients"
               >
-                <span className="text-blue-400"><Star size={16}/></span> 
+                <span className="text-blue-400"><StarIcon size={16}/></span> 
                 {showSidebarLabels && <span>Fidèle Clients</span>}
               </button>
               <button 
@@ -844,7 +827,7 @@ export default function App() {
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'insolvable' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80 border border-transparent'}`}
                 title="Insolvable Clients"
               >
-                <span className="text-amber-400"><AlertTriangle size={16}/></span> 
+                <span className="text-amber-400"><TriangleAlertIcon size={16}/></span> 
                 {showSidebarLabels && <span>Insolvable Clients</span>}
               </button>
               <button 
@@ -852,7 +835,7 @@ export default function App() {
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'risks' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80 border border-transparent'}`}
                 title="Risk Anomalies"
               >
-                <span className="text-rose-400"><AlertCircle size={16}/></span> 
+                <span className="text-rose-400"><InfoIcon size={16}/></span> 
                 {showSidebarLabels && <span>Risk Anomalies</span>}
               </button>
             </div>
@@ -871,74 +854,13 @@ export default function App() {
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${isSettingsPage ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80 border border-transparent'}`}
               title="My Account"
             >
-              <Settings size={16} className={isSettingsPage ? 'text-white' : 'text-white/50'} />
+              <SettingsIcon size={16} className={isSettingsPage ? 'text-white' : 'text-white/50'} />
               {showSidebarLabels && <span>My Account</span>}
             </button>
           </div>
         </div>
         
-        {/* User Sidebar Bottom */}
-        <div key={`sidebar-footer-${sidebarRefreshTrigger}`} className="mt-auto p-4 border-t border-white/10 bg-black/50 backdrop-blur-xl relative overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-indigo-400/60 to-transparent" />
-          <div className="absolute -right-10 -bottom-10 h-24 w-24 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none" />
-          {showSidebarLabels ? (
-            <div className="relative rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl px-4 py-4">
-              <div className="flex items-start justify-between gap-3 mb-4">
-                <div className="flex items-center gap-3 truncate">
-                  {sidebarUser?.profileImage ? (
-                    <img
-                      src={sidebarUser.profileImage}
-                      alt={sidebarUser?.fullName || 'User'}
-                      className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-lg shadow-indigo-500/20 ring-1 ring-white/20"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-sm font-bold text-white shrink-0 shadow-lg shadow-indigo-500/20 ring-1 ring-white/20">
-                      {sidebarUser?.fullName?.charAt(0) || 'U'}
-                    </div>
-                  )}
-                  <div className="truncate">
-                    <p className="text-sm font-semibold text-white/90 truncate">{sidebarUser?.fullName || 'User'}</p>
-                    <p className="text-xs text-white/50 truncate">{sidebarUser?.companyName || 'Finance Dept'}</p>
-                  </div>
-                </div>
-                <div className={`flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-semibold shrink-0 ${roleBadgeClasses[role] || roleBadgeClasses.Viewer}`}>
-                  <span className="h-2 w-2 rounded-full bg-current opacity-80" />
-                  {role}
-                </div>
-              </div>
-              <button 
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3 py-2.5 text-xs tracking-wider font-semibold text-rose-300 transition-all hover:bg-rose-500/20 hover:text-white"
-              >
-                <LogOut size={16} /> Sign Out
-              </button>
-            </div>
-          ) : (
-            <div className="relative rounded-2xl border border-white/[0.08] bg-white/[0.04] backdrop-blur-xl px-2 py-3 flex flex-col items-center gap-3">
-              {sidebarUser?.profileImage ? (
-                <img
-                  src={sidebarUser.profileImage}
-                  alt={sidebarUser?.fullName || 'User'}
-                  className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-indigo-500/20 ring-1 ring-white/20"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-sm font-bold text-white shadow-lg shadow-indigo-500/20 ring-1 ring-white/20">
-                  {sidebarUser?.fullName?.charAt(0) || 'U'}
-                </div>
-              )}
-              <button
-                onClick={handleLogout}
-                title="Sign Out"
-                className="w-10 h-10 flex items-center justify-center rounded-xl border border-rose-500/20 bg-rose-500/10 text-rose-300 transition-all hover:bg-rose-500/20 hover:text-white"
-              >
-                <LogOut size={16} />
-              </button>
-              <span className={`px-2 py-0.5 rounded-full border text-[10px] font-semibold ${roleBadgeClasses[role] || roleBadgeClasses.Viewer}`}>
-                {role}
-              </span>
-            </div>
-          )}
-        </div>
+
       </div>
 
       {/* === MAIN CONTENT === */}
@@ -952,16 +874,16 @@ export default function App() {
               className="lg:hidden mb-3 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white/70"
               title="Toggle sidebar"
             >
-              <Menu size={18} />
+              <MenuIcon size={18} />
             </button>
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-lg font-bold text-white">
               {isSettingsPage
                 ? 'Settings'
                 : isClientManagementPage
                   ? 'Client Management'
                   : (currentView !== 'dashboard'
                       ? `Clients List - ${currentView === 'fidèle' ? 'Fidèles' : currentView === 'insolvable' ? 'Insolvables' : 'Solvables'}`
-                      : (selectedClientName ? `${selectedClientName} - Profile` : 'Global CRM Operations'))}
+                      : (selectedClientName ? `${selectedClientName} - Profile` : 'Enterprise Dashboard'))}
             </h2>
               <p className="text-sm text-white/50 font-medium tracking-wide">
                 {isSettingsPage
@@ -976,11 +898,12 @@ export default function App() {
           <div className="flex gap-2">
               <NotificationBell />
             <button onClick={() => handleRunAudit()} disabled={invoices.length === 0} className="bg-white/15 hover:bg-white/25 text-white rounded-xl backdrop-blur-sm border border-white/10 px-4 py-2.5 flex items-center justify-center gap-2 font-semibold text-xs tracking-wider uppercase transition-all disabled:opacity-50">
-              <ShieldAlert size={14} /> Scan for Risks
+              <ShieldXIcon size={14} /> Scan for Risks
             </button>
             <button onClick={() => openModal()} className="bg-white/15 hover:bg-white/25 text-white rounded-xl backdrop-blur-sm border border-white/10 px-4 py-2.5 flex items-center justify-center gap-2 font-semibold text-xs tracking-wider uppercase transition-all">
-              <Plus size={14} /> Add Invoice
+              <PlusIcon size={14} /> Add Invoice
             </button>
+            <SettingsDropdown user={user} onLogout={handleLogout} changeView={changeView} />
           </div>
         </header>
 
@@ -1037,11 +960,11 @@ export default function App() {
                 </div>
                 <div className="flex gap-4">
                   <div className={`px-4 py-3 rounded-xl border flex flex-col items-center gap-1 min-w-30 ${selectedClientData?.isSolvable ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'}`}>
-                    <ShieldCheck size={22} className={selectedClientData?.isSolvable ? 'text-emerald-500' : 'text-rose-500'} />
+                    <ShieldCheckIcon size={22} className={selectedClientData?.isSolvable ? 'text-emerald-500' : 'text-rose-500'} />
                     <span className="text-xs font-bold leading-none uppercase">{selectedClientData?.isSolvable ? 'Solvable' : 'Debt Risk'}</span>
                   </div>
                   <div className={`px-4 py-3 rounded-xl border flex flex-col items-center gap-1 min-w-30 ${selectedClientData?.isFidele ? 'bg-blue-500/10 border-blue-500/20 text-blue-300' : 'bg-white/[0.04] border-white/[0.08] text-white/60'}`}>
-                    <Star size={22} className={selectedClientData?.isFidele ? 'text-blue-500' : 'text-white/40'} />
+                    <StarIcon size={22} className={selectedClientData?.isFidele ? 'text-blue-500' : 'text-white/40'} />
                     <span className="text-xs font-bold leading-none uppercase">{selectedClientData?.isFidele ? 'Fidèle' : 'New/Casual'}</span>
                   </div>
                 </div>

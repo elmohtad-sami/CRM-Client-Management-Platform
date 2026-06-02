@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowDownUpIcon } from '@animateicons/react/lucide';
 
 export default function PaymentHistoryTable({ payments = [], onStatusChange }) {
   const [sort, setSort] = useState({ key: 'date', direction: 'desc' });
@@ -57,7 +57,7 @@ export default function PaymentHistoryTable({ payments = [], onStatusChange }) {
                     className="inline-flex items-center gap-1 hover:text-white transition-colors"
                   >
                     {column.label}
-                    <ArrowUpDown size={14} />
+                    <ArrowDownUpIcon size={14} />
                   </button>
                 </th>
               ))}

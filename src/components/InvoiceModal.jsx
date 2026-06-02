@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { XIcon } from '@animateicons/react/lucide';
 
 export default function InvoiceModal({
   isModalOpen,
@@ -18,7 +18,7 @@ export default function InvoiceModal({
       <div className="relative bg-black/50 backdrop-blur-2xl rounded-2xl shadow-2xl w-full max-w-lg p-8 animate-in zoom-in-95 duration-200 border border-white/[0.12]">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-white">{editingId ? 'Edit Record' : 'New Invoice'}</h3>
-          <button onClick={() => setIsModalOpen(false)} className="text-white/40 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors"><X size={18} /></button>
+          <button onClick={() => setIsModalOpen(false)} className="text-white/40 hover:text-white bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors"><XIcon size={18} /></button>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-5">

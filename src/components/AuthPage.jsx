@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, Mail, Lock, User, Briefcase, ArrowRight, CheckCircle2, Clock } from 'lucide-react';
+import { BlocksIcon, MailIcon, LockIcon, UserIcon, UserCogIcon, ChevronRightIcon, CircleCheckIcon, BellIcon } from '@animateicons/react/lucide';
 import { authApi } from '../api/auth';
 
 export default function AuthPage({ onLogin, initialMode = 'login' }) {
@@ -133,7 +133,7 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
           <div className="w-full max-w-[340px]">
             <div className="flex items-center gap-3 mb-5 justify-center">
               <div className="p-2.5 bg-white/10 rounded-xl">
-                <CheckCircle2 className="text-white" size={26} />
+                <CircleCheckIcon className="text-white" size={26} />
               </div>
               <div>
                 <h1 className="text-xl font-bold text-white">Verify Email</h1>
@@ -147,7 +147,7 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
             )}
             {verificationMessage && (
               <div className="mb-4 p-2.5 bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-medium rounded-xl flex items-center justify-center gap-2">
-                <Clock size={14} className="shrink-0" />
+                <BellIcon size={14} className="shrink-0" />
                 <span>{verificationMessage}</span>
               </div>
             )}
@@ -171,7 +171,7 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
                 disabled={isSubmitting}
                 className="w-full bg-white/15 hover:bg-white/25 text-white font-bold tracking-wide py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-white/10"
               >
-                {isSubmitting ? 'Verifying...' : 'Verify & Sign In'} <ArrowRight size={14} />
+                {isSubmitting ? 'Verifying...' : 'Verify & Sign In'} <ChevronRightIcon size={14} />
               </button>
             </form>
             <div className="mt-5 space-y-2.5 border-t border-white/10 pt-4">
@@ -212,10 +212,10 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
           {/* Logo & Title */}
           <div className="flex items-center gap-3 justify-center mb-1">
             <div className="p-2.5 bg-white/10 rounded-xl">
-              <Building2 className="text-white" size={26} />
+              <BlocksIcon className="text-white" size={26} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">FinAudit CRM</h1>
+              <h1 className="text-xl font-bold text-white">FinAudit Finance</h1>
               <p className="text-[11px] text-white/50">Enterprise Finance & Risk Management</p>
             </div>
           </div>
@@ -253,7 +253,7 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
                       onChange={(e) => setFullName(e.target.value)}
                     />
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <User size={15} className="text-white/60" />
+                      <UserIcon size={15} className="text-white/60" />
                     </div>
                   </div>
                 </div>
@@ -268,7 +268,7 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
                       onChange={(e) => setCompanyName(e.target.value)}
                     />
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <Briefcase size={15} className="text-white/60" />
+                      <UserCogIcon size={15} className="text-white/60" />
                     </div>
                   </div>
                 </div>
@@ -286,7 +286,7 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
                   required
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Mail size={15} className="text-white/60" />
+                  <MailIcon size={15} className="text-white/60" />
                 </div>
               </div>
             </div>
@@ -302,7 +302,7 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
                   required
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <Lock size={15} className="text-white/60" />
+                  <LockIcon size={15} className="text-white/60" />
                 </div>
               </div>
             </div>
@@ -311,7 +311,7 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
               disabled={isSubmitting}
               className="w-full bg-white/15 hover:bg-white/25 text-white font-bold tracking-wider py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-white/10"
             >
-              {isSubmitting ? 'Please wait...' : isLogin ? 'LOGIN' : 'REGISTER'} <ArrowRight size={14} />
+              {isSubmitting ? 'Please wait...' : isLogin ? 'LOGIN' : 'REGISTER'} <ChevronRightIcon size={14} />
             </button>
           </form>
           {/* Footer links */}

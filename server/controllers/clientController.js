@@ -353,16 +353,29 @@ exports.createInvoice = asyncHandler(async (req, res, next) => {
   let client = await findClientById(req.params.id, userId) || await findClientById(req.body.clientId, userId) || await findClientById(req.body.clientName, userId);
 
   if (!client) {
-    const clientName = normalizeText(req.body.clientName || req.params.id);
-    if (!clientName) {
-      return res.status(400).json({ message: 'Client name is required to create the invoice' });
-    }
-
-    // ✅ NEW: Auto-assign userId when creating new client
-    client = await Client.create({
-      ...buildClientFromInvoice({ ...req.body, clientName, clientId: req.body.clientId || req.params.id }),
-      userId // ✅ Set userId for new client
+    // Fallback: search without userId filter in case client exists with missing/different userId
+    client = await Client.findOne({
+      $or: [
+        { id: normalizeText(req.params.id) },
+        { id: normalizeText(req.body.clientId) },
+        { id: toClientId(normalizeText(req.body.clientName || req.params.id)) },
+        { name: normalizeText(req.body.clientName || req.params.id) }
+      ]
     });
+
+    if (client) {
+      client.userId = userId;
+    } else {
+      const clientName = normalizeText(req.body.clientName || req.params.id);
+      if (!clientName) {
+        return res.status(400).json({ message: 'Client name is required to create the invoice' });
+      }
+
+      client = await Client.create({
+        ...buildClientFromInvoice({ ...req.body, clientName, clientId: req.body.clientId || req.params.id }),
+        userId
+      });
+    }
   }
 
   const invoice = buildInvoice(client, req.body || {});

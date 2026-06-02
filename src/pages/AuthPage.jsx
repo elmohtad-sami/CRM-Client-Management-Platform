@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { MailIcon, LockIcon, EyeIcon, EyeOffIcon } from '@animateicons/react/lucide';
 
 const AuthPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -41,7 +41,7 @@ const AuthPage = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-slate-400" />
+                  <MailIcon className="h-5 w-5 text-slate-400" />
                 </div>
                 <input 
                   id="email" 
@@ -58,7 +58,7 @@ const AuthPage = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-400" />
+                  <LockIcon className="h-5 w-5 text-slate-400" />
                 </div>
                 <input 
                   id="password" 
@@ -71,7 +71,7 @@ const AuthPage = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                 </button>
               </div>
             </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useClients } from '../../context/ClientsContext';
-import { Edit2, Trash2, Check, X } from 'lucide-react';
+import { UserPenIcon, Trash2Icon, CheckIcon, XIcon } from '@animateicons/react/lucide';
 
 export default function NotesSection({ clientId, notes = [], canAdd }) {
   const [value, setValue] = useState('');
@@ -130,7 +130,7 @@ export default function NotesSection({ clientId, notes = [], canAdd }) {
                   className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.12] bg-white/10 text-white/70 hover:bg-white/20 transition-colors"
                   title="Edit note"
                 >
-                  <Edit2 size={14} />
+                  <UserPenIcon size={14} />
                 </button>
                 <button
                   type="button"
@@ -138,7 +138,7 @@ export default function NotesSection({ clientId, notes = [], canAdd }) {
                   className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition-colors"
                   title="Delete note"
                 >
-                  <Trash2 size={14} />
+                  <Trash2Icon size={14} />
                 </button>
               </div>
             </div>
@@ -156,14 +156,14 @@ export default function NotesSection({ clientId, notes = [], canAdd }) {
                     onClick={() => saveEditing(note.id)}
                     className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white rounded-xl backdrop-blur-sm border border-white/10 px-4 py-2 text-xs font-semibold transition-colors"
                   >
-                    <Check size={14} /> Save
+                    <CheckIcon size={14} /> Save
                   </button>
                   <button
                     type="button"
                     onClick={cancelEditing}
                     className="inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.04] px-4 py-2 text-xs font-semibold text-white/70 transition-colors hover:bg-white/10"
                   >
-                    <X size={14} /> Cancel
+                    <XIcon size={14} /> Cancel
                   </button>
                 </div>
               </div>

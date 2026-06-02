@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { jsPDF } from 'jspdf';
-import { FileText, X } from 'lucide-react';
+import { ClipboardIcon, XIcon } from '@animateicons/react/lucide';
 import autoTable from 'jspdf-autotable';
+import { useClients } from '../context/ClientsContext';
 
 export default function InvoiceCreator() {
+  const { createInvoice } = useClients();
   const [isOpen, setIsOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [invoiceData, setInvoiceData] = useState({
     clientName: '',
     phone: '',
@@ -39,7 +42,7 @@ export default function InvoiceCreator() {
   };
 
   const downloadPDF = async () => {
-    if (isDownloading) return;
+    if (isDownloading || isSaving) return;
 
     setIsDownloading(true);
 
@@ -60,7 +63,7 @@ export default function InvoiceCreator() {
       const issueDate = new Date().toLocaleDateString('fr-FR');
 
       doc.setFillColor(132, 204, 22);
-      doc.rect(15, 60, pageWidth - 30, 8, 'F');
+
 
       doc.setTextColor(0, 0, 0);
       doc.setFont('helvetica', 'bold');
@@ -123,7 +126,7 @@ export default function InvoiceCreator() {
       doc.setFontSize(10);
       doc.text('Modalites et conditions de', 18, tableEndY + 18);
       doc.text('reglement :', 18, tableEndY + 24);
-      doc.text(`Date d'echeance : ${invoiceData.dueDate || '../../...'}`, 18, tableEndY + 38);
+      doc.text(`Date d'echeance : ${invoiceData.dueDate || '---'}`, 18, tableEndY + 38);
 
       const totalsX = pageWidth - 85;
       let totalsY = tableEndY + 10;
@@ -152,13 +155,30 @@ export default function InvoiceCreator() {
 
       const invoiceFileName = `Invoice_${invoiceData.invoiceNumber || '2026-001'}.pdf`;
       doc.save(invoiceFileName);
+
+      // Persist the invoice to the backend
+      setIsSaving(true);
+      await createInvoice({
+        clientName: invoiceData.clientName,
+        amountHT: parsedAmountHT,
+        tva: parseFloat(vatAmount),
+        totalTTC: parseFloat(totalTTC),
+        dueDate: invoiceData.dueDate,
+        invoiceNumber: invoiceData.invoiceNumber,
+        paymentStatus: 'Pending',
+      });
+
+      closeModal();
     } catch (error) {
-      console.error('PDF generation error:', error);
-      alert('Failed to generate PDF. Please try again.');
+      console.error('Failed to create invoice:', error);
+      alert('Failed to save invoice. Please try again.');
     } finally {
       setIsDownloading(false);
+      setIsSaving(false);
     }
   };
+
+  const isCreating = isDownloading || isSaving;
 
   return (
     <>
@@ -167,7 +187,7 @@ export default function InvoiceCreator() {
         onClick={() => setIsOpen(true)}
         className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 font-bold text-white text-xs uppercase tracking-wider shadow-md transition hover:bg-white/25 backdrop-blur-sm border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
       >
-        <FileText size={14} />
+        <ClipboardIcon size={14} />
         <span>Generate New Invoice</span>
       </button>
 
@@ -185,7 +205,7 @@ export default function InvoiceCreator() {
                 onClick={closeModal}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/60 transition hover:bg-white/20 hover:text-white"
               >
-                <X size={18} />
+                <XIcon size={18} />
               </button>
             </div>
 
@@ -324,10 +344,10 @@ export default function InvoiceCreator() {
                       <button
                         type="button"
                         onClick={downloadPDF}
-                        disabled={isDownloading}
+                        disabled={isCreating}
                         className="flex-1 rounded-xl bg-white/15 px-4 py-2.5 font-bold text-white text-xs uppercase tracking-wider transition hover:bg-white/25 backdrop-blur-sm border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
                       >
-                        {isDownloading ? 'Generating PDF...' : 'Create & Download PDF'}
+                        {isCreating ? 'Saving...' : 'Create & Download PDF'}
                       </button>
                     </div>
                   </form>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit2, Trash2, Receipt, AlertTriangle, CheckCircle2, Download, Eye } from 'lucide-react';
+import { UserPenIcon, Trash2Icon, ClipboardIcon, TriangleAlertIcon, CircleCheckIcon, DownloadIcon, EyeIcon } from '@animateicons/react/lucide';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useClients } from '../context/ClientsContext';
@@ -192,7 +192,7 @@ export default function FilteredClientList({
     return (
       <div className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] border-dashed rounded-2xl p-12 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
         <div className="w-16 h-16 bg-white/10 text-white/50 rounded-full flex items-center justify-center mb-4">
-          <Receipt size={32} />
+          <ClipboardIcon size={32} />
         </div>
         <h3 className="text-lg font-bold text-white mb-2">No invoices found</h3>
         <p className="text-white/50 max-w-sm">
@@ -268,12 +268,12 @@ export default function FilteredClientList({
                           }}
                           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/20 transition-colors"
                         >
-                          <AlertTriangle size={14} className="text-rose-500" />
+                          <TriangleAlertIcon size={14} className="text-rose-500" />
                           <span>{inv.flags.length} Risks</span>
                         </button>
                       ) : (
                         <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                          <CheckCircle2 size={14} />
+                          <CircleCheckIcon size={14} />
                         </span>
                       )}
                     </td>
@@ -291,7 +291,7 @@ export default function FilteredClientList({
                         className="inline-flex items-center gap-2 rounded-xl bg-white/15 text-white px-4 py-2 text-xs font-semibold backdrop-blur-sm border border-white/10 transition-all duration-200 hover:bg-white/25"
                         title="View Client"
                       >
-                        <Eye size={14} />
+                        <EyeIcon size={14} />
                         View
                       </button>
                       {!isClientSummaryRow && (
@@ -304,7 +304,7 @@ export default function FilteredClientList({
                             className="p-2 text-white/40 hover:text-emerald-300 hover:bg-emerald-500/15 rounded-lg transition-colors border border-transparent hover:border-emerald-500/30"
                             title="Download PDF"
                           >
-                            <Download size={14} />
+                            <DownloadIcon size={14} />
                           </button>
                           <button 
                             onClick={(event) => {
@@ -314,7 +314,7 @@ export default function FilteredClientList({
                             className="p-2 text-white/40 hover:text-indigo-300 hover:bg-indigo-500/15 rounded-lg transition-colors border border-transparent hover:border-indigo-500/30"
                             title="Edit Invoice"
                           >
-                            <Edit2 size={14} />
+                            <UserPenIcon size={14} />
                           </button>
                           <button 
                             onClick={(event) => {
@@ -324,7 +324,7 @@ export default function FilteredClientList({
                             className="p-2 text-white/40 hover:text-rose-300 hover:bg-rose-500/15 rounded-lg transition-colors border border-transparent hover:border-rose-500/30"
                             title="Delete Invoice"
                           >
-                            <Trash2 size={14} />
+                            <Trash2Icon size={14} />
                           </button>
                         </>
                       )}

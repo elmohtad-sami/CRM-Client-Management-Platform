@@ -1,12 +1,12 @@
 import React from 'react';
-import { AlertCircle, Trash2, CalendarClock, ShieldAlert } from 'lucide-react';
+import { InfoIcon, Trash2Icon, BellIcon, ShieldXIcon } from '@animateicons/react/lucide';
 
 export default function RiskAnomaliesList({ anomalies, onDelete }) {
   if (anomalies.length === 0) {
     return (
       <div className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] border-dashed rounded-2xl p-12 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
         <div className="w-16 h-16 bg-emerald-500/15 text-emerald-300 rounded-full flex items-center justify-center mb-4">
-          <ShieldAlert size={32} />
+          <ShieldXIcon size={32} />
         </div>
         <h3 className="text-lg font-bold text-white mb-2">No Risk Anomalies</h3>
         <p className="text-white/50 max-w-sm">
@@ -48,7 +48,7 @@ export default function RiskAnomaliesList({ anomalies, onDelete }) {
                       ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                       : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
                   }`}>
-                    <AlertCircle size={14} className={
+                    <InfoIcon size={14} className={
                       anomaly.level === 'High' ? 'text-rose-500' : anomaly.level === 'Medium' ? 'text-amber-500' : 'text-emerald-500' //
                     } />
                     {anomaly.level}
@@ -58,7 +58,7 @@ export default function RiskAnomaliesList({ anomalies, onDelete }) {
                   {anomaly.description}
                 </td>
                 <td className="px-4 py-3 text-white/50 font-medium flex items-center gap-2 mt-1">
-                  <CalendarClock size={14} className="text-white/40" />
+                  <BellIcon size={14} className="text-white/40" />
                   <span className="text-[11px]">{new Date(anomaly.createdAt).toLocaleDateString()}</span>
                 </td>
                 <td className="px-4 py-3 text-right">
@@ -67,7 +67,7 @@ export default function RiskAnomaliesList({ anomalies, onDelete }) {
                     className="p-2 text-white/40 hover:text-rose-300 hover:bg-rose-500/15 rounded-lg transition-colors border border-transparent hover:border-rose-500/30 opacity-0 group-hover:opacity-100"
                     title="Delete Anomaly"
                   >
-                    <Trash2 size={14} />
+                    <Trash2Icon size={14} />
                   </button>
                 </td>
               </tr>
