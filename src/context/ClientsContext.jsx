@@ -367,17 +367,18 @@ export function ClientsProvider({ children }) {
   };
 
   const addNote = (clientId, note) => {
+    const authorName = currentUser?.fullName || currentUser?.email || 'User';
     const noteEntry = typeof note === 'string'
       ? {
           id: Date.now().toString(),
-          author: 'Current User',
+          author: authorName,
           date: new Date().toISOString(),
           content: note,
           text: note
         }
       : {
           id: note.id || Date.now().toString(),
-          author: note.author || 'Current User',
+          author: note.author || authorName,
           date: note.date || new Date().toISOString(),
           content: note.content || note.text || '',
           text: note.text || note.content || ''

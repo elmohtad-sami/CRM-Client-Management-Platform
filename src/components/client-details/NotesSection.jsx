@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useClients } from '../../context/ClientsContext';
 import { UserPenIcon, Trash2Icon, CheckIcon, XIcon } from '@animateicons/react/lucide';
 
-export default function NotesSection({ clientId, notes = [], canAdd }) {
+export default function NotesSection({ clientId, notes = [], canAdd, currentUserName }) {
   const [value, setValue] = useState('');
   const [localNotes, setLocalNotes] = useState(notes);
   const [editingId, setEditingId] = useState('');
@@ -19,7 +19,7 @@ export default function NotesSection({ clientId, notes = [], canAdd }) {
     if (!value.trim()) return;
     const nextNote = {
       id: `${Date.now()}`,
-      author: 'Current User',
+      author: currentUserName || 'User',
       date: new Date().toISOString(),
       content: value.trim(),
       text: value.trim()

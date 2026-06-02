@@ -14,7 +14,7 @@ import { useClients } from '../../context/ClientsContext';
 export default function ClientDetailsPage({ clientId, onBack, startEditClient, changeView }) {
   const { id } = useParams();
   const resolvedClientId = String(id || clientId || '');
-  const { role } = useUser();
+  const { role, user } = useUser();
   const { clients, updateClient, deleteClient, addDocument, updateClientInvoice } = useClients();
   const client = useMemo(() => {
     const normalizedRouteId = String(resolvedClientId).trim().toLowerCase();
@@ -126,7 +126,7 @@ export default function ClientDetailsPage({ clientId, onBack, startEditClient, c
       <PaymentHistoryTable payments={client.invoices || client.payments || []} onStatusChange={handleInvoiceStatusChange} />
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <NotesSection clientId={client._id} notes={client.notes || []} canAdd={canAddNotes} />
+        <NotesSection clientId={client._id} notes={client.notes || []} canAdd={canAddNotes} currentUserName={user?.fullName || 'User'} />
         <DocumentsSection
           documents={client.documents || []}
           canUpload={canUploadDocuments}

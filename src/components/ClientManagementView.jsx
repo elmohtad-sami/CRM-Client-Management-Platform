@@ -80,7 +80,7 @@ export default function ClientManagementView({
       <div className="lg:col-span-2 bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] overflow-hidden">
         <div className="border-b border-white/[0.08] px-6 py-4">
           <h3 className="text-lg font-bold text-white">Clients ({clients.length})</h3>
-          <p className="text-sm text-white/50">CRUD management for all client records.</p>
+          <p className="text-sm text-white/50">Management for all client records.</p>
         </div>
 
         <div className="overflow-x-auto">
