@@ -10,28 +10,15 @@ const statusColors = {
 export default function ClientHeader({ client, onBack, onEdit, onDelete, canEdit, canDelete }) {
   return (
     <section className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6 transition-all duration-300">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-start gap-3 min-w-0">
-          <button
-            onClick={onBack}
-            className="h-10 w-10 rounded-xl border border-white/[0.12] bg-white/[0.04] text-white/60 hover:bg-white/10 transition-colors inline-flex items-center justify-center"
-            title="Back"
-          >
-            <ChevronLeftIcon size={16} />
-          </button>
-          <div className="min-w-0">
-            <h1 className="text-2xl font-black text-white truncate">{client.name}</h1>
-            <p className="text-xs text-white/50 truncate">{client.company}</p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${statusColors[client.status] || statusColors.Solvable}`}>
-                {client.status}
-              </span>
-              <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-white/80">
-                Risk Score: {client.riskScore}
-              </span>
-            </div>
-          </div>
-        </div>
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/50 hover:bg-white/10 hover:text-white/70 transition-colors"
+          title="Back"
+        >
+          <ChevronLeftIcon size={14} />
+          Back
+        </button>
 
         <div className="flex items-center gap-2">
           {canEdit && (
@@ -50,6 +37,19 @@ export default function ClientHeader({ client, onBack, onEdit, onDelete, canEdit
               <Trash2Icon size={14} /> Delete
             </button>
           )}
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center text-center md:items-start md:text-left">
+        <h1 className="text-3xl font-black text-white">{client.name}</h1>
+        <p className="text-sm text-white/50 mt-1">{client.company}</p>
+        <div className="mt-4 flex flex-wrap items-center justify-center md:justify-start gap-2">
+          <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${statusColors[client.status] || statusColors.Solvable}`}>
+            {client.status}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-white/80">
+            Risk Score: {client.riskScore}
+          </span>
         </div>
       </div>
     </section>

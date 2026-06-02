@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  BlocksIcon, UsersIcon, InfoIcon, PlusIcon, 
+  UsersIcon, InfoIcon, PlusIcon, 
   Trash2Icon, UserPenIcon, XIcon, ActivityIcon, DollarSignIcon, 
   SlidersHorizontalIcon, ClipboardIcon, ShieldXIcon, ChevronRightIcon, BookOpenIcon, StarIcon, ShieldCheckIcon, CircleCheckIcon, TriangleAlertIcon, MenuIcon, SettingsIcon
 } from '@animateicons/react/lucide';
@@ -65,8 +65,7 @@ export default function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null); 
   const [editingId, setEditingId] = useState(null);
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
-  const [isHoveringSidebar, setIsHoveringSidebar] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth < 1024 : false));
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -682,7 +681,7 @@ export default function App() {
   };
 
   const selectedClientData = clientsData.find(c => c.name === selectedClientName);
-  const showSidebarLabels = isMobile || isSidebarExpanded || isHoveringSidebar;
+  const showSidebarLabels = isMobile || isSidebarExpanded;
   const isSettingsPage = currentView === 'settings';
   const isClientManagementPage = currentView === 'clients-management';
   const roleBadgeClasses = {
@@ -736,42 +735,15 @@ export default function App() {
       {/* === SIDEBAR (DARK) === */}
       <div
         data-print-hide
-        onMouseEnter={() => setIsHoveringSidebar(true)}
-        onMouseLeave={() => setIsHoveringSidebar(false)}
         className={`${
         isMobile
           ? `fixed inset-y-0 left-0 w-72 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} z-40`
-          : `${isSidebarExpanded || isHoveringSidebar ? 'w-72' : 'w-20'} relative translate-x-0 z-20`
+          : `${isSidebarExpanded ? 'w-72' : 'w-20'} relative translate-x-0 z-20`
       } bg-black/50 backdrop-blur-xl border-r border-white/[0.08] text-white/60 flex flex-col shadow-[0_0_40px_rgba(255,255,255,0.03)] shrink-0 transition-all duration-300 ease-in-out overflow-hidden`}>
         <div className="p-6 border-b border-white/[0.08] flex items-center justify-between">
-          {showSidebarLabels && (
-            <div className="flex items-center gap-3 text-white">
-              {user?.profileImage ? (
-                <img
-                  src={user.profileImage}
-                  alt="User profile"
-                  className="h-10 w-10 rounded-xl object-cover ring-1 ring-white/20 shadow-lg shadow-indigo-500/20"
-                />
-              ) : (
-                <BlocksIcon className="text-indigo-400" size={28}/>
-              )}
-              <h1 className="text-2xl font-bold tracking-tight whitespace-nowrap">FinAudit Finance</h1>
-            </div>
-          )}
-          {!showSidebarLabels && (
-            user?.profileImage ? (
-              <img
-                src={user.profileImage}
-                alt="User profile"
-                className="h-10 w-10 rounded-xl object-cover ring-1 ring-white/20 shadow-lg shadow-indigo-500/20"
-              />
-            ) : (
-              <BlocksIcon className="text-indigo-400" size={28}/>
-            )
-          )}
           <button
             onClick={toggleSidebar}
-            className="ml-auto p-2 hover:bg-white/10 rounded-lg transition-colors text-white/50 hover:text-white/80 shrink-0"
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/50 hover:text-white/80 shrink-0"
             title={showSidebarLabels ? 'Collapse sidebar' : 'Expand sidebar'}
           >
             {showSidebarLabels ? <XIcon size={18} /> : <MenuIcon size={18} />}
@@ -841,23 +813,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="px-4 space-y-2">
-            {showSidebarLabels && (
-              <div className="flex items-center gap-3 px-3 pt-1 pb-2 text-[11px] font-bold text-white/50 uppercase tracking-wider border-t border-white/[0.08] mt-2">
-                <span className="h-px flex-1 bg-white/[0.08]" />
-                <span>User Settings</span>
-                <span className="h-px flex-1 bg-white/[0.08]" />
-              </div>
-            )}
-            <button
-              onClick={() => changeView('settings')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${isSettingsPage ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80 border border-transparent'}`}
-              title="My Account"
-            >
-              <SettingsIcon size={16} className={isSettingsPage ? 'text-white' : 'text-white/50'} />
-              {showSidebarLabels && <span>My Account</span>}
-            </button>
-          </div>
+        
         </div>
         
 

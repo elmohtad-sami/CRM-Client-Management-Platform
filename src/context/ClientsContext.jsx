@@ -215,7 +215,7 @@ const resolveClientRecord = (clients, clientInput) => {
 };
 
 export function ClientsProvider({ children }) {
-  const { currentUser, token } = useUser();
+  const { user: currentUser, token } = useUser();
   const [clients, setClients] = useState(() => cloneClients());
   const [invoices, setInvoices] = useState([]);
 
@@ -284,14 +284,23 @@ export function ClientsProvider({ children }) {
   const replaceClient = (updatedClient) => {
     const normalized = normalizeClient(updatedClient);
     setClients((current) => {
-      const normalizedClientId = getClientIdValue(normalized);
-      const existingIndex = current.findIndex((client) => getClientIdValue(client) === normalizedClientId);
+      const byId = String(normalized.id || '').trim().toLowerCase();
+      const byMongoId = getClientIdValue(normalized);
+      const existingIndex = current.findIndex((client) => {
+        const matchMongo = getClientIdValue(client) === byMongoId;
+        const matchSlug = byId && String(client.id || '').trim().toLowerCase() === byId;
+        return matchMongo || matchSlug;
+      });
 
       if (existingIndex === -1) {
         return [...current, normalized];
       }
 
-      return current.map((client) => (getClientIdValue(client) === normalizedClientId ? normalized : client));
+      return current.map((client) => {
+        const matchMongo = getClientIdValue(client) === byMongoId;
+        const matchSlug = byId && String(client.id || '').trim().toLowerCase() === byId;
+        return (matchMongo || matchSlug) ? normalized : client;
+      });
     });
   };
 
@@ -305,7 +314,9 @@ export function ClientsProvider({ children }) {
 
     void (async () => {
       try {
-        const createdClient = await clientsApi.create(optimisticClient, token);
+        // Strip _id — Mongoose rejects string _ids that aren't valid ObjectId hex
+        const { _id, ...apiPayload } = optimisticClient;
+        const createdClient = await clientsApi.create(apiPayload, token);
         replaceClient(createdClient);
         void loadClientsFromApi(token);
       } catch (error) {
