@@ -250,7 +250,7 @@ export default function ReportDownloadButton({ stats, monthlyRevenueData }) {
       type="button"
       onClick={generatePDF}
       disabled={isPreparing}
-      className="no-print inline-flex items-center gap-2 rounded-xl bg-rose-500/15 px-4 py-2.5 text-xs uppercase tracking-wider font-bold text-rose-300 shadow transition-all hover:bg-rose-500/25 disabled:cursor-not-allowed disabled:opacity-80 backdrop-blur-sm border border-rose-500/30 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:ring-offset-2"
+      className="no-print inline-flex items-center gap-2 rounded-xl bg-[var(--c-danger-bg)] px-4 py-2.5 text-xs uppercase tracking-wider font-bold text-[var(--c-danger)] shadow transition-all hover:bg-[var(--c-danger-hover)] disabled:cursor-not-allowed disabled:opacity-80 backdrop-blur-sm border border-[var(--c-danger-border)] focus:outline-none focus:ring-2 focus:ring-[var(--c-danger-border)] focus:ring-offset-2"
       title="Download dashboard as PDF"
     >
       {isPreparing ? <LoaderCircleIcon size={14} className="animate-spin" /> : <DownloadIcon size={14} />}

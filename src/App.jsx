@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   UsersIcon, InfoIcon, PlusIcon, 
   Trash2Icon, UserPenIcon, XIcon, ActivityIcon, DollarSignIcon, 
-  SlidersHorizontalIcon, ClipboardIcon, ShieldXIcon, ChevronRightIcon, BookOpenIcon, StarIcon, ShieldCheckIcon, CircleCheckIcon, TriangleAlertIcon, MenuIcon, SettingsIcon
+  SlidersHorizontalIcon, ClipboardIcon, ShieldXIcon, ChevronRightIcon, BookOpenIcon, StarIcon, ShieldCheckIcon, CircleCheckIcon, TriangleAlertIcon, MenuIcon, SettingsIcon, SearchIcon
 } from '@animateicons/react/lucide';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import AuthPage from './components/AuthPage';
@@ -11,6 +11,7 @@ import FilteredClientList from './components/FilteredClientList';
 import GlobalDashboardComponent from './components/GlobalDashboardComponent';
 import AddRiskForm from './components/AddRiskForm';
 import RiskAnomaliesList from './components/RiskAnomaliesList';
+import DevisManager from './components/DevisManager';
 import ClientDetailsPage from './components/client-details/ClientDetailsPage';
 import ProtectedPermissionRoute from './components/ProtectedPermissionRoute';
 import SettingsView from './components/SettingsView';
@@ -20,7 +21,9 @@ import AuditDrawer from './components/AuditDrawer';
 import { useUser } from './context/UserContext';
 import { useClients } from './context/ClientsContext';
 import NotificationBell from './components/NotificationBell';
+import { devisApi } from './api/devis';
 import SettingsDropdown from './components/SettingsDropdown';
+import ThemeToggle from './components/ThemeToggle';
 import { authApi } from './api/auth';
 
 export default function App() {
@@ -46,6 +49,32 @@ export default function App() {
     }
     return [];
   });
+  const [devisList, setDevisList] = useState(() => {
+    if (user && user.email) {
+      const saved = localStorage.getItem(`finance_crm_devis_${user.email}`);
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+  const [companyInfo, setCompanyInfo] = useState(() => {
+    if (user && user.email) {
+      const saved = localStorage.getItem(`finance_crm_company_${user.email}`);
+      return saved ? JSON.parse(saved) : {
+        name: 'FINANCE CRM',
+        address: '123, Avenue Mohammed V',
+        city: 'Casablanca, Maroc',
+        phone: '+212 5 22 00 00 00',
+        email: 'contact@financecrm.ma',
+        rc: '123456',
+        if_: 'A123456',
+        ice: '123456789000012',
+        rib: '123 456 7890 1234567890 12',
+        bank: 'Attijariwafa Bank — Agence Casa Centre'
+      };
+    }
+    return {};
+  });
+  const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState('Tous'); 
   const [selectedClientName, setSelectedClientName] = useState(null);
   const [currentView, setCurrentView] = useState(() => {
@@ -81,7 +110,8 @@ export default function App() {
     status: 'Solvable',
     email: '',
     phone: '',
-    industry: ''
+    industry: '',
+    montant: ''
   });
   const [editingClientId, setEditingClientId] = useState('');
   const [clientFeedback, setClientFeedback] = useState('');
@@ -89,22 +119,43 @@ export default function App() {
   const [formData, setFormData] = useState({ clientName: '', clientStatus: 'Fidele', date: '', dueDate: '', amountHT: '', tva: '', paymentStatus: 'Pending', paymentDelay: '', paymentMethod: 'Bank Transfer', status: 'En attente' });
 
   // --- PERSISTENCE ---
+  // Load from localStorage AFTER user is ready (runs first in definition order)
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const saved = localStorage.getItem(`finance_crm_risks_${user.email}`);
+    if (saved) setRiskAnomalies(JSON.parse(saved));
+    const savedDevises = localStorage.getItem(`finance_crm_devis_${user.email}`);
+    if (savedDevises) setDevisList(JSON.parse(savedDevises));
+    const savedCompany = localStorage.getItem(`finance_crm_company_${user.email}`);
+    if (savedCompany) setCompanyInfo(JSON.parse(savedCompany));
+  }, [user?.email]);
+
+  // Save to localStorage whenever local data changes (no `user` dep — avoids
+  // overwriting saved data with empty state before load effect has run)
   useEffect(() => {
     if (user && user.email) {
       localStorage.setItem(`finance_crm_data_${user.email}`, JSON.stringify(invoices));
       localStorage.setItem(`finance_crm_risks_${user.email}`, JSON.stringify(riskAnomalies));
+      localStorage.setItem(`finance_crm_devis_${user.email}`, JSON.stringify(devisList));
+      localStorage.setItem(`finance_crm_company_${user.email}`, JSON.stringify(companyInfo));
     }
-  }, [invoices, riskAnomalies, user]);
+  }, [invoices, riskAnomalies, devisList, companyInfo]);
 
+  // Load devis from server (authoritative source; overwrites localStorage cache)
   useEffect(() => {
-    if (!user?.email) {
-      setRiskAnomalies([]);
-      return;
-    }
+    if (!token) return;
 
-    const saved = localStorage.getItem(`finance_crm_risks_${user.email}`);
-    setRiskAnomalies(saved ? JSON.parse(saved) : []);
-  }, [user?.email]);
+    devisApi.list(token)
+      .then((serverDevis) => {
+        if (Array.isArray(serverDevis)) {
+          setDevisList(serverDevis);
+        }
+      })
+      .catch(() => {
+        // Server unavailable; localStorage data (loaded above) serves as fallback
+      });
+  }, [token]);
 
   useEffect(() => {
     const handleUrlChange = () => {
@@ -209,7 +260,11 @@ export default function App() {
   // --- DERIVED METRICS ---
   const stats = useMemo(() => {
     const clientInvoices = clients.flatMap((client) => Array.isArray(client.invoices) ? client.invoices : []);
-    const totalRevenue = clientInvoices.reduce((sum, inv) => sum + Number(inv.totalTTC ?? inv.amountHT ?? inv.amount ?? 0), 0);
+    const totalRevenue = clients.reduce((sum, client) => {
+      const clientInvTotal = (Array.isArray(client.invoices) ? client.invoices : [])
+        .reduce((s, inv) => s + Number(inv.totalTTC ?? inv.amountHT ?? inv.amount ?? 0), 0);
+      return sum + (clientInvTotal || Number(client.montant || 0) || Number(client.totalRevenue || 0));
+    }, 0);
     const totalRisks = clientInvoices.filter(inv => inv.flags && inv.flags.length > 0).length;
     const solvableCount = clientsData.filter(c => c.isSolvable).length;
     const solvabilityRate = clientsData.length ? Math.round((solvableCount / clientsData.length) * 100) : 0;
@@ -243,24 +298,43 @@ export default function App() {
   }, [clientsStatusByName]);
 
   const monthlyRevenueData = useMemo(() => {
-    const clientInvoices = clients.flatMap((client) => Array.isArray(client.invoices) ? client.invoices : []);
+    const monthTotals = clients.reduce((acc, client) => {
+      const clientInvoices = Array.isArray(client.invoices) ? client.invoices : [];
 
-    const monthTotals = clientInvoices.reduce((acc, inv) => {
-      if (!inv.date) return acc;
+      clientInvoices.forEach((inv) => {
+        if (!inv.date) return;
+        const parsedDate = new Date(inv.date);
+        if (Number.isNaN(parsedDate.getTime())) return;
+        const monthKey = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}`;
+        if (!acc[monthKey]) {
+          acc[monthKey] = {
+            monthKey,
+            month: parsedDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }),
+            revenue: 0
+          };
+        }
+        acc[monthKey].revenue += Number(inv.amount ?? inv.amountHT ?? inv.totalTTC ?? 0);
+      });
 
-      const parsedDate = new Date(inv.date);
-      if (Number.isNaN(parsedDate.getTime())) return acc;
-
-      const monthKey = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}`;
-      if (!acc[monthKey]) {
-        acc[monthKey] = {
-          monthKey,
-          month: parsedDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }),
-          revenue: 0
-        };
+      if (clientInvoices.length === 0) {
+        const montantVal = Number(client.montant || 0) || Number(client.totalRevenue || 0);
+        if (montantVal > 0) {
+          const dateStr = client.registrationDate || new Date().toISOString().slice(0, 10);
+          const parsedDate = new Date(dateStr);
+          if (!Number.isNaN(parsedDate.getTime())) {
+            const monthKey = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}`;
+            if (!acc[monthKey]) {
+              acc[monthKey] = {
+                monthKey,
+                month: parsedDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }),
+                revenue: 0
+              };
+            }
+            acc[monthKey].revenue += montantVal;
+          }
+        }
       }
 
-      acc[monthKey].revenue += Number(inv.amount ?? inv.amountHT ?? inv.totalTTC ?? 0);
       return acc;
     }, {});
 
@@ -275,7 +349,7 @@ export default function App() {
 
     const toClientRow = (client) => {
       const clientInvoices = invoices.filter(inv => inv.clientName === client.name || inv.clientId === client._id || inv.clientId === client.id).filter(Boolean);
-      const computedTotal = clientInvoices.reduce((sum, inv) => sum + Number(inv.totalTTC ?? inv.amountHT ?? inv.amount ?? 0), 0) || Number(client.totalRevenue || 0);
+      const computedTotal = clientInvoices.reduce((sum, inv) => sum + Number(inv.totalTTC ?? inv.amountHT ?? inv.amount ?? 0), 0) || Number(client.montant || 0) || Number(client.totalRevenue || 0);
 
       return {
         id: client._id || client.id || client.name,
@@ -307,21 +381,38 @@ export default function App() {
         });
       }
 
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        clientsResult = clientsResult.filter((client) =>
+          client.name?.toLowerCase().includes(q) ||
+          String(client.montant || client.totalRevenue || 0).includes(q)
+        );
+      }
+
       return clientsResult.map(toClientRow);
     }
 
     if (currentView === 'solvable') {
-      return clientsData
-        .filter((client) => clientsStatusByName[client.name] === 'Solvable')
-        .map(toClientRow);
+      let filtered = clientsData.filter((client) => clientsStatusByName[client.name] === 'Solvable');
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        filtered = filtered.filter((client) => client.name?.toLowerCase().includes(q));
+      }
+      return filtered.map(toClientRow);
     } else if (currentView === 'fidèle') {
-      return clientsData
-        .filter((client) => clientsStatusByName[client.name] === 'Fidèle')
-        .map(toClientRow);
+      let filtered = clientsData.filter((client) => clientsStatusByName[client.name] === 'Fidèle');
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        filtered = filtered.filter((client) => client.name?.toLowerCase().includes(q));
+      }
+      return filtered.map(toClientRow);
     } else if (currentView === 'insolvable') {
-      return clientsData
-        .filter((client) => clientsStatusByName[client.name] === 'Insolvable')
-        .map(toClientRow);
+      let filtered = clientsData.filter((client) => clientsStatusByName[client.name] === 'Insolvable');
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        filtered = filtered.filter((client) => client.name?.toLowerCase().includes(q));
+      }
+      return filtered.map(toClientRow);
     } else if (filter !== 'Tous') {
       result = result.filter(inv => {
         const client = clientsData.find(c => c.name === inv.clientName);
@@ -331,14 +422,24 @@ export default function App() {
         return true;
       });
     }
-    
+
+    if (searchQuery.trim() && !['dashboard', 'solvable', 'fidèle', 'insolvable'].includes(currentView)) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(inv =>
+        inv.clientName?.toLowerCase().includes(q) ||
+        inv.reference?.toLowerCase().includes(q) ||
+        (inv.totalTTC != null && String(inv.totalTTC).includes(q))
+      );
+    }
+
     return result.sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [invoices, clientsData, filter, selectedClientName, currentView, clientsStatusByName]);
+  }, [invoices, clientsData, filter, selectedClientName, currentView, clientsStatusByName, searchQuery]);
 
   const changeView = (view) => {
     setCurrentView(view);
     setSelectedClientName(null);
     setFilter('Tous');
+    setSearchQuery('');
     if (isMobile) setIsMobileSidebarOpen(false);
     if (view === 'dashboard') {
       navigate('/');
@@ -569,7 +670,8 @@ export default function App() {
       status: 'Solvable',
       email: '',
       phone: '',
-      industry: ''
+      industry: '',
+      montant: ''
     });
     setEditingClientId('');
   };
@@ -582,7 +684,8 @@ export default function App() {
       status: client?.status || 'Solvable',
       email: client?.email || '',
       phone: client?.phone || '',
-      industry: client?.industry || ''
+      industry: client?.industry || '',
+      montant: client?.montant || ''
     });
     setClientFeedback('');
   };
@@ -601,7 +704,8 @@ export default function App() {
       company: clientForm.company.trim() || clientForm.name.trim(),
       email: clientForm.email.trim(),
       phone: clientForm.phone.trim(),
-      industry: clientForm.industry.trim()
+      industry: clientForm.industry.trim(),
+      montant: clientForm.montant
     };
 
     if (editingClientId) {
@@ -634,7 +738,7 @@ export default function App() {
 
   const getInvoiceDisplayStatus = (invoice) => {
     if (invoice?.status === 'Payée') {
-      return { label: 'Payée', className: 'text-emerald-600 bg-emerald-50 border-emerald-200' };
+      return { label: 'Payée', className: 'text-[var(--c-positive)] bg-[var(--c-positive-bg)] border-[var(--c-positive-border)]' };
     }
 
     const dueDate = invoice?.dueDate ? new Date(invoice.dueDate) : null;
@@ -646,11 +750,11 @@ export default function App() {
       normalizedDueDate.setHours(0, 0, 0, 0);
 
       if (normalizedDueDate < today) {
-        return { label: 'En retard', className: 'text-rose-600 bg-rose-50 border-rose-200' };
+        return { label: 'En retard', className: 'text-[var(--c-danger)] bg-[var(--c-danger-bg)] border-[var(--c-danger-border)]' };
       }
     }
 
-    return { label: 'En attente', className: 'text-amber-700 bg-amber-50 border-amber-200' };
+    return { label: 'En attente', className: 'text-[var(--c-warning)] bg-[var(--c-warning-bg)] border-[var(--c-warning-border)]' };
   };
 
   // --- AUDIT SYSTEM ---
@@ -685,10 +789,10 @@ export default function App() {
   const isSettingsPage = currentView === 'settings';
   const isClientManagementPage = currentView === 'clients-management';
   const roleBadgeClasses = {
-    Admin: 'border-rose-400/20 bg-rose-400/10 text-rose-300',
-    Finance: 'border-blue-400/20 bg-blue-400/10 text-blue-300',
-    Analyst: 'border-violet-400/20 bg-violet-400/10 text-violet-300',
-    Viewer: 'border-white/20 bg-white/10 text-white/60'
+    Admin: 'border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] text-[var(--c-danger)]',
+    Finance: 'border-[var(--c-info-border)] bg-[var(--c-info-bg)] text-[var(--c-info)]',
+    Analyst: 'border-[var(--c-accent-border)] bg-[var(--c-accent-bg)] text-[var(--c-accent)]',
+    Viewer: 'border-[var(--c-border)] bg-[var(--c-element)] text-[var(--c-text-2)]'
   };
   const toggleSidebar = () => {
     if (isMobile) {
@@ -700,7 +804,7 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center text-white/60">
+      <div className="min-h-screen bg-[var(--c-bg)] flex items-center justify-center text-[var(--c-text-2)]">
         Loading account...
       </div>
     );
@@ -719,7 +823,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-black font-sans text-white overflow-hidden relative">
+    <div className="flex h-screen bg-[var(--c-bg)] font-sans text-[var(--c-text)] overflow-hidden relative">
       {/* Neon glow accents */}
       <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.25) 0%, rgba(234,88,12,0.10) 50%, transparent 70%)' }} />
       <div className="absolute -top-20 -right-20 w-[450px] h-[450px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(217,70,239,0.25) 0%, rgba(147,51,234,0.10) 50%, transparent 70%)' }} />
@@ -728,7 +832,7 @@ export default function App() {
           type="button"
           aria-label="Close sidebar overlay"
           onClick={() => setIsMobileSidebarOpen(false)}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+          className="fixed inset-0 bg-[var(--c-overlay)] backdrop-blur-sm z-30 lg:hidden"
         />
       )}
       
@@ -739,11 +843,11 @@ export default function App() {
         isMobile
           ? `fixed inset-y-0 left-0 w-72 ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} z-40`
           : `${isSidebarExpanded ? 'w-72' : 'w-20'} relative translate-x-0 z-20`
-      } bg-black/50 backdrop-blur-xl border-r border-white/[0.08] text-white/60 flex flex-col shadow-[0_0_40px_rgba(255,255,255,0.03)] shrink-0 transition-all duration-300 ease-in-out overflow-hidden`}>
-        <div className="p-6 border-b border-white/[0.08] flex items-center justify-between">
+      } bg-[var(--c-sidebar)] backdrop-blur-xl border-r border-[var(--c-border)] text-[var(--c-text-2)] flex flex-col shadow-[var(--c-glow)] shrink-0 transition-all duration-300 ease-in-out overflow-hidden`}>
+        <div className="p-6 border-b border-[var(--c-border)] flex items-center justify-between">
           <button
             onClick={toggleSidebar}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/50 hover:text-white/80 shrink-0"
+            className="p-2 hover:bg-[var(--c-element-hover)] rounded-lg transition-colors text-[var(--c-text-3)] hover:text-[var(--c-text)] shrink-0"
             title={showSidebarLabels ? 'Collapse sidebar' : 'Expand sidebar'}
           >
             {showSidebarLabels ? <XIcon size={18} /> : <MenuIcon size={18} />}
@@ -756,7 +860,7 @@ export default function App() {
           <div className="px-4">
             <button 
               onClick={() => changeView('dashboard')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium tracking-wider ${!selectedClientName && currentView === 'dashboard' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80'}`}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium tracking-wider ${!selectedClientName && currentView === 'dashboard' ? 'bg-[var(--c-element)] text-[var(--c-text)] shadow-sm' : 'hover:bg-[var(--c-element-hover)] hover:text-[var(--c-text)]'}`}
               title="Global Dashboard"
             >
               <ActivityIcon size={18} /> 
@@ -764,7 +868,7 @@ export default function App() {
             </button>
             <button
               onClick={() => changeView('clients-management')}
-              className={`mt-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium tracking-wider ${!selectedClientName && currentView === 'clients-management' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80'}`}
+              className={`mt-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium tracking-wider ${!selectedClientName && currentView === 'clients-management' ? 'bg-[var(--c-element)] text-[var(--c-text)] shadow-sm' : 'hover:bg-[var(--c-element-hover)] hover:text-[var(--c-text)]'}`}
               title="Client Management"
             >
               <UsersIcon size={18} />
@@ -775,40 +879,48 @@ export default function App() {
           {/* Smart Filters */}
           <div className="px-4 space-y-2">
             {showSidebarLabels && (
-              <span className="px-3 text-[11px] font-bold text-white/50 uppercase tracking-wider">Financial Filters</span>
+              <span className="px-3 text-[11px] font-bold text-[var(--c-text-3)] uppercase tracking-wider">Financial Filters</span>
             )}
             <div className="space-y-1 mt-2">
               <button 
                 onClick={() => changeView('solvable')} 
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'solvable' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80 border border-transparent'}`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'solvable' ? 'bg-[var(--c-element)] text-[var(--c-text)] shadow-sm' : 'hover:bg-[var(--c-element-hover)] hover:text-[var(--c-text)] border border-transparent'}`}
                 title="Solvable Clients"
               >
-                <span className="text-emerald-400"><ShieldCheckIcon size={16}/></span> 
+                <span className="text-[var(--c-positive)]"><ShieldCheckIcon size={16}/></span> 
                 {showSidebarLabels && <span>Solvable Clients</span>}
               </button>
               <button 
                 onClick={() => changeView('fidèle')} 
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'fidèle' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80 border border-transparent'}`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'fidèle' ? 'bg-[var(--c-element)] text-[var(--c-text)] shadow-sm' : 'hover:bg-[var(--c-element-hover)] hover:text-[var(--c-text)] border border-transparent'}`}
                 title="Fidèle Clients"
               >
-                <span className="text-blue-400"><StarIcon size={16}/></span> 
+                <span className="text-[var(--c-info)]"><StarIcon size={16}/></span> 
                 {showSidebarLabels && <span>Fidèle Clients</span>}
               </button>
               <button 
                 onClick={() => changeView('insolvable')} 
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'insolvable' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80 border border-transparent'}`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'insolvable' ? 'bg-[var(--c-element)] text-[var(--c-text)] shadow-sm' : 'hover:bg-[var(--c-element-hover)] hover:text-[var(--c-text)] border border-transparent'}`}
                 title="Insolvable Clients"
               >
-                <span className="text-amber-400"><TriangleAlertIcon size={16}/></span> 
+                <span className="text-[var(--c-warning)]"><TriangleAlertIcon size={16}/></span> 
                 {showSidebarLabels && <span>Insolvable Clients</span>}
               </button>
               <button 
                 onClick={() => changeView('risks')} 
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'risks' ? 'bg-white/15 text-white shadow-sm' : 'hover:bg-white/10 hover:text-white/80 border border-transparent'}`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'risks' ? 'bg-[var(--c-element)] text-[var(--c-text)] shadow-sm' : 'hover:bg-[var(--c-element-hover)] hover:text-[var(--c-text)] border border-transparent'}`}
                 title="Risk Anomalies"
               >
-                <span className="text-rose-400"><InfoIcon size={16}/></span> 
+                <span className="text-[var(--c-danger)]"><InfoIcon size={16}/></span> 
                 {showSidebarLabels && <span>Risk Anomalies</span>}
+              </button>
+              <button 
+                onClick={() => changeView('devis')} 
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'devis' ? 'bg-[var(--c-element)] text-[var(--c-text)] shadow-sm' : 'hover:bg-[var(--c-element-hover)] hover:text-[var(--c-text)] border border-transparent'}`}
+                title="Devis Manager"
+              >
+                <span className="text-[var(--c-positive)]"><DollarSignIcon size={16}/></span> 
+                {showSidebarLabels && <span>Devis Manager</span>}
               </button>
             </div>
           </div>
@@ -823,16 +935,16 @@ export default function App() {
       <div className="flex-1 overflow-y-auto relative flex flex-col">
         
         {/* Top Header */}
-        <header data-print-hide className="bg-white/[0.04] backdrop-blur-xl border-b border-white/[0.08] px-8 py-5 flex justify-between items-center z-10 sticky top-0 shadow-sm">
+        <header data-print-hide className="bg-[var(--c-elevated)] backdrop-blur-xl border-b border-[var(--c-border)] px-8 py-5 flex justify-between items-center z-10 sticky top-0 shadow-sm">
           <div>
             <button
               onClick={toggleSidebar}
-              className="lg:hidden mb-3 p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-white/70"
+              className="lg:hidden mb-3 p-2 bg-[var(--c-element)] hover:bg-[var(--c-element-hover)] rounded-lg transition-colors text-[var(--c-text-2)]"
               title="Toggle sidebar"
             >
               <MenuIcon size={18} />
             </button>
-            <h2 className="text-lg font-bold text-white">
+            <h2 className="text-lg font-bold text-[var(--c-text)]">
               {isSettingsPage
                 ? 'Settings'
                 : isClientManagementPage
@@ -841,7 +953,7 @@ export default function App() {
                       ? `Clients List - ${currentView === 'fidèle' ? 'Fidèles' : currentView === 'insolvable' ? 'Insolvables' : 'Solvables'}`
                       : (selectedClientName ? `${selectedClientName} - Profile` : 'Enterprise Dashboard'))}
             </h2>
-              <p className="text-sm text-white/50 font-medium tracking-wide">
+              <p className="text-sm text-[var(--c-text-3)] font-medium tracking-wide">
                 {isSettingsPage
                   ? 'Manage your account details, security, and session settings.'
                   : isClientManagementPage
@@ -853,12 +965,13 @@ export default function App() {
             </div>
           <div className="flex gap-2">
               <NotificationBell />
-            <button onClick={() => handleRunAudit()} disabled={invoices.length === 0} className="bg-white/15 hover:bg-white/25 text-white rounded-xl backdrop-blur-sm border border-white/10 px-4 py-2.5 flex items-center justify-center gap-2 font-semibold text-xs tracking-wider uppercase transition-all disabled:opacity-50">
+            <button onClick={() => handleRunAudit()} disabled={invoices.length === 0} className="bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] rounded-xl backdrop-blur-sm border border-[var(--c-border)] px-4 py-2.5 flex items-center justify-center gap-2 font-semibold text-xs tracking-wider uppercase transition-all disabled:opacity-50">
               <ShieldXIcon size={14} /> Scan for Risks
             </button>
-            <button onClick={() => openModal()} className="bg-white/15 hover:bg-white/25 text-white rounded-xl backdrop-blur-sm border border-white/10 px-4 py-2.5 flex items-center justify-center gap-2 font-semibold text-xs tracking-wider uppercase transition-all">
+            <button onClick={() => openModal()} className="bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] rounded-xl backdrop-blur-sm border border-[var(--c-border)] px-4 py-2.5 flex items-center justify-center gap-2 font-semibold text-xs tracking-wider uppercase transition-all">
               <PlusIcon size={14} /> Add Invoice
             </button>
+            <ThemeToggle />
             <SettingsDropdown user={user} onLogout={handleLogout} changeView={changeView} />
           </div>
         </header>
@@ -908,19 +1021,19 @@ export default function App() {
             />
           ) : selectedClientName ? (
             <>
-              <div className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6 flex flex-col md:flex-row items-center gap-8 justify-between animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-2 h-full bg-indigo-500"></div>
+              <div className="bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] rounded-2xl shadow-[var(--c-glow)] p-6 flex flex-col md:flex-row items-center gap-8 justify-between animate-in fade-in slide-in-from-bottom-4 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-2 h-full bg-[var(--c-accent)]"></div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-bold text-white/40 tracking-widest uppercase">Finance Score</h3>
+                  <h3 className="text-sm font-bold text-[var(--c-placeholder)] tracking-widest uppercase">Finance Score</h3>
                   <p className="text-4xl font-black">{selectedClientData?.solvabilityScore}%</p>
                 </div>
                 <div className="flex gap-4">
-                  <div className={`px-4 py-3 rounded-xl border flex flex-col items-center gap-1 min-w-30 ${selectedClientData?.isSolvable ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300' : 'bg-rose-500/10 border-rose-500/20 text-rose-300'}`}>
-                    <ShieldCheckIcon size={22} className={selectedClientData?.isSolvable ? 'text-emerald-500' : 'text-rose-500'} />
+                  <div className={`px-4 py-3 rounded-xl border flex flex-col items-center gap-1 min-w-30 ${selectedClientData?.isSolvable ? 'bg-[var(--c-positive-bg)] border-[var(--c-positive-border)] text-[var(--c-positive)]' : 'bg-[var(--c-danger-bg)] border-[var(--c-danger-border)] text-[var(--c-danger)]'}`}>
+                    <ShieldCheckIcon size={22} className={selectedClientData?.isSolvable ? 'text-[var(--c-positive)]' : 'text-[var(--c-danger)]'} />
                     <span className="text-xs font-bold leading-none uppercase">{selectedClientData?.isSolvable ? 'Solvable' : 'Debt Risk'}</span>
                   </div>
-                  <div className={`px-4 py-3 rounded-xl border flex flex-col items-center gap-1 min-w-30 ${selectedClientData?.isFidele ? 'bg-blue-500/10 border-blue-500/20 text-blue-300' : 'bg-white/[0.04] border-white/[0.08] text-white/60'}`}>
-                    <StarIcon size={22} className={selectedClientData?.isFidele ? 'text-blue-500' : 'text-white/40'} />
+                  <div className={`px-4 py-3 rounded-xl border flex flex-col items-center gap-1 min-w-30 ${selectedClientData?.isFidele ? 'bg-blue-500/10 border-[var(--c-info-border)] text-[var(--c-info)]' : 'bg-[var(--c-elevated)] border-[var(--c-border)] text-[var(--c-text-2)]'}`}>
+                    <StarIcon size={22} className={selectedClientData?.isFidele ? 'text-[var(--c-info)]' : 'text-[var(--c-placeholder)]'} />
                     <span className="text-xs font-bold leading-none uppercase">{selectedClientData?.isFidele ? 'Fidèle' : 'New/Casual'}</span>
                   </div>
                 </div>
@@ -947,6 +1060,8 @@ export default function App() {
               setSelectedInvoice={setSelectedInvoice} 
               setIsDrawerOpen={setIsDrawerOpen} 
               onRowClick={openClientDetails}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
             />
           ) : currentView === 'fidèle' ? (
             <FilteredClientList 
@@ -958,6 +1073,8 @@ export default function App() {
               setSelectedInvoice={setSelectedInvoice} 
               setIsDrawerOpen={setIsDrawerOpen} 
               onRowClick={openClientDetails}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
             />
           ) : currentView === 'insolvable' ? (
             <FilteredClientList 
@@ -969,12 +1086,45 @@ export default function App() {
               setSelectedInvoice={setSelectedInvoice} 
               setIsDrawerOpen={setIsDrawerOpen} 
               onRowClick={openClientDetails}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
             />
           ) : currentView === 'risks' ? (
             <>
               <AddRiskForm onAddRisk={(newRisk) => setRiskAnomalies([newRisk, ...riskAnomalies])} />
               <RiskAnomaliesList anomalies={riskAnomalies} onDelete={(id) => setRiskAnomalies(riskAnomalies.filter(r => r.id !== id))} />
             </>
+          ) : currentView === 'devis' ? (
+            <DevisManager devisList={devisList} onAddDevis={async (d) => {
+  try {
+    const saved = await devisApi.create(d, token);
+    setDevisList((prev) => [saved, ...prev]);
+    createInvoice({
+      clientName: d.client?.name || '',
+      amountHT: d.amountHT,
+      tva: d.tva,
+      totalTTC: d.totalTTC,
+      status: d.status,
+      paymentStatus: d.status === 'Accepté' ? 'Paid' : 'Pending',
+      reference: d.reference,
+      method: 'Bank Transfer',
+      date: d.createdAt ? d.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+      dueDate: d.createdAt ? new Date(new Date(d.createdAt).getTime() + 30*24*60*60*1000).toISOString().slice(0, 10) : '',
+      paymentDelay: 0,
+      flags: [],
+      source: 'devis'
+    }).catch(() => {});
+  } catch (err) {
+    console.error('Failed to save devis:', err);
+  }
+}} onDeleteDevis={async (id) => {
+  try {
+    await devisApi.remove(id, token);
+    setDevisList((prev) => prev.filter((d) => d.id !== id));
+  } catch (err) {
+    console.error('Failed to delete devis:', err);
+  }
+}} clients={clients} companyInfo={companyInfo} onUpdateCompanyInfo={setCompanyInfo} />
           ) : (
             <>
               <GlobalDashboardComponent 
@@ -992,6 +1142,8 @@ export default function App() {
                 setSelectedInvoice={setSelectedInvoice} 
                 setIsDrawerOpen={setIsDrawerOpen} 
                 onRowClick={openClientDetails}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
               />
             </>
           )}

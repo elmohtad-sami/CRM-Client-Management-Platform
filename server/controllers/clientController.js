@@ -179,7 +179,7 @@ exports.updateClient = asyncHandler(async (req, res, next) => {
     return res.status(404).json({ message: 'Client not found or access denied' });
   }
 
-  Object.assign(client, req.body);
+  client.set(req.body);
   client.activities = [buildActivity('Client edited', `Client ${client.name} was updated`), ...(client.activities || [])];
   await client.save();
   res.json(client);

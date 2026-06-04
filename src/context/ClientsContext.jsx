@@ -188,6 +188,7 @@ const normalizeClient = (client = {}) => {
     phone: client.phone || '',
     address: client.address || '',
     industry: client.industry || '',
+    montant: client.montant || '',
     registrationDate: client.registrationDate || new Date().toISOString().slice(0, 10),
     assignedManager: client.assignedManager || '',
     totalRevenue: Number(client.totalRevenue || 0),

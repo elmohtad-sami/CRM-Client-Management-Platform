@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPenIcon, Trash2Icon, ClipboardIcon, TriangleAlertIcon, CircleCheckIcon, DownloadIcon, EyeIcon } from '@animateicons/react/lucide';
+import { UserPenIcon, Trash2Icon, ClipboardIcon, TriangleAlertIcon, CircleCheckIcon, DownloadIcon, EyeIcon, SearchIcon } from '@animateicons/react/lucide';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useClients } from '../context/ClientsContext';
@@ -14,7 +14,9 @@ export default function FilteredClientList({
   handleDelete,
   setSelectedInvoice,
   setIsDrawerOpen,
-  onRowClick
+  onRowClick,
+  searchQuery,
+  setSearchQuery
 }) {
   const navigate = useNavigate();
   const { clients } = useClients();
@@ -188,38 +190,49 @@ export default function FilteredClientList({
     const safeFilename = inv.clientName ? inv.clientName.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'client';
     doc.save(`facture_${safeFilename}_${inv.id}.pdf`);
   };
-  if (displayedInvoices.length === 0) {
-    return (
-      <div className="bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] border-dashed rounded-2xl p-12 flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
-        <div className="w-16 h-16 bg-white/10 text-white/50 rounded-full flex items-center justify-center mb-4">
-          <ClipboardIcon size={32} />
-        </div>
-        <h3 className="text-lg font-bold text-white mb-2">No invoices found</h3>
-        <p className="text-white/50 max-w-sm">
-          {hasSelectedClient 
-            ? "This client has no recorded invoices yet." 
-            : `No invoices currently match the '${status}' filter.`}
-        </p>
-      </div>
-    );
-  }
+  const showEmpty = displayedInvoices.length === 0;
 
   return (
-    <div className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="p-6 border-b border-white/[0.08] flex justify-between items-center bg-white/[0.04]">
+    <div className="bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] rounded-2xl shadow-[var(--c-glow)] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="p-6 border-b border-[var(--c-border)] flex flex-wrap justify-between items-center gap-3 bg-[var(--c-elevated)]">
         <div>
-          <h3 className="text-lg font-bold text-white">
+          <h3 className="text-lg font-bold text-[var(--c-text)]">
             {hasSelectedClient ? "Client Invoices" : `Invoices (${status})`}
           </h3>
-          <p className="text-sm text-white/50 mt-1">
-            Showing {displayedInvoices.length} {displayedInvoices.length === 1 ? 'record' : 'records'}
+          <p className="text-sm text-[var(--c-text-3)] mt-1">
+            {showEmpty ? '0 records' : `Showing ${displayedInvoices.length} ${displayedInvoices.length === 1 ? 'record' : 'records'}`}
           </p>
         </div>
+        {setSearchQuery && (
+          <div className="relative w-full sm:w-64 no-print">
+            <SearchIcon size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--c-placeholder)] pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Rechercher par nom de client..."
+              value={searchQuery || ''}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl py-2 pl-9 pr-3 text-sm outline-none focus:border-[var(--c-border)] focus:bg-[var(--c-element-hover)] transition-all"
+            />
+          </div>
+        )}
       </div>
       
-      <div className="overflow-x-auto">
+      {showEmpty ? (
+        <div className="p-12 flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-[var(--c-element)] text-[var(--c-text-3)] rounded-full flex items-center justify-center mb-4">
+            <ClipboardIcon size={32} />
+          </div>
+          <h3 className="text-lg font-bold text-[var(--c-text)] mb-2">No invoices found</h3>
+          <p className="text-[var(--c-text-3)] max-w-sm">
+            {hasSelectedClient 
+              ? "This client has no recorded invoices yet." 
+              : `No invoices currently match the '${status}' filter.`}
+          </p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
         <table className="w-full text-left text-sm whitespace-nowrap">
-          <thead className="bg-white/[0.04] border-b border-white/[0.08] text-white/50">
+          <thead className="bg-[var(--c-elevated)] border-b border-[var(--c-border)] text-[var(--c-text-3)]">
             <tr>
               <th className="px-4 py-3 font-bold tracking-wider uppercase text-xs">Client</th>
               <th className="px-4 py-3 font-bold tracking-wider uppercase text-xs">Date</th>
@@ -230,30 +243,30 @@ export default function FilteredClientList({
               <th className="px-4 py-3 font-bold tracking-wider uppercase text-xs text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.05]">
+          <tbody className="divide-y divide-[var(--c-border)]">
             {displayedInvoices.map((inv) => {
               const hasFlags = inv.flags && inv.flags.length > 0;
               const isClientSummaryRow = inv.sourceType === 'client';
               return (
                 <tr
                   key={inv.id}
-                  className="hover:bg-white/[0.03] transition-colors group cursor-pointer"
+                  className="hover:bg-[var(--c-elevated)] transition-colors group cursor-pointer"
                   onClick={() => onRowClick?.(inv.clientId || resolveClientId(inv.clientName))}
                 >
-                  <td className="px-4 py-3 font-bold text-white">{inv.clientName}</td>
-                  <td className="px-4 py-3 text-white/70">{new Date(inv.date).toLocaleDateString()}</td>
-                  <td className="px-4 py-3 font-bold text-white">
+                  <td className="px-4 py-3 font-bold text-[var(--c-text)]">{inv.clientName}</td>
+                  <td className="px-4 py-3 text-[var(--c-text-2)]">{new Date(inv.date).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 font-bold text-[var(--c-text)]">
                     {Number(inv.totalTTC).toLocaleString()} MAD
                   </td>
-                  <td className="px-4 py-3 text-white/70">{inv.paymentMethod}</td>
+                  <td className="px-4 py-3 text-[var(--c-text-2)]">{inv.paymentMethod}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
                       inv.paymentStatus === 'Paid' 
-                        ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' 
-                        : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                        ? 'bg-[var(--c-positive-bg)] text-[var(--c-positive)] border border-[var(--c-positive-border)]' 
+                        : 'bg-[var(--c-warning-bg)] text-[var(--c-warning)] border border-[var(--c-warning-border)]'
                     }`}>
-                      {inv.paymentStatus === 'Paid' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>}
-                      {inv.paymentStatus !== 'Paid' && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>}
+                      {inv.paymentStatus === 'Paid' && <span className="w-1.5 h-1.5 rounded-full bg-[var(--c-positive)]"></span>}
+                      {inv.paymentStatus !== 'Paid' && <span className="w-1.5 h-1.5 rounded-full bg-[var(--c-warning)] animate-pulse"></span>}
                       {inv.paymentStatus}
                     </span>
                   </td>
@@ -266,13 +279,13 @@ export default function FilteredClientList({
                             setSelectedInvoice(inv);
                             setIsDrawerOpen(true);
                           }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-500/15 text-rose-300 border border-rose-500/30 hover:bg-rose-500/20 transition-colors"
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[var(--c-danger-bg)] text-[var(--c-danger)] border border-[var(--c-danger-border)] hover:bg-[var(--c-danger-hover)] transition-colors"
                         >
-                          <TriangleAlertIcon size={14} className="text-rose-500" />
+                          <TriangleAlertIcon size={14} className="text-[var(--c-danger)]" />
                           <span>{inv.flags.length} Risks</span>
                         </button>
                       ) : (
-                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-[var(--c-positive-bg)] text-[var(--c-positive)] border border-[var(--c-positive-border)]">
                           <CircleCheckIcon size={14} />
                         </span>
                       )}
@@ -288,7 +301,7 @@ export default function FilteredClientList({
                           onRowClick?.(clientId);
                           navigate(`/clients/${clientId}`);
                         }}
-                        className="inline-flex items-center gap-2 rounded-xl bg-white/15 text-white px-4 py-2 text-xs font-semibold backdrop-blur-sm border border-white/10 transition-all duration-200 hover:bg-white/25"
+                        className="inline-flex items-center gap-2 rounded-xl bg-[var(--c-element)] text-[var(--c-text)] px-4 py-2 text-xs font-semibold backdrop-blur-sm border border-[var(--c-border)] transition-all duration-200 hover:bg-[var(--c-element-hover-2)]"
                         title="View Client"
                       >
                         <EyeIcon size={14} />
@@ -301,7 +314,7 @@ export default function FilteredClientList({
                               event.stopPropagation();
                               handleExportPDF(inv);
                             }}
-                            className="p-2 text-white/40 hover:text-emerald-300 hover:bg-emerald-500/15 rounded-lg transition-colors border border-transparent hover:border-emerald-500/30"
+                            className="p-2 text-[var(--c-placeholder)] hover:text-[var(--c-positive)] hover:bg-[var(--c-positive-bg)] rounded-lg transition-colors border border-transparent hover:border-[var(--c-positive-border)]"
                             title="Download PDF"
                           >
                             <DownloadIcon size={14} />
@@ -311,7 +324,7 @@ export default function FilteredClientList({
                               event.stopPropagation();
                               openModal(inv);
                             }} 
-                            className="p-2 text-white/40 hover:text-indigo-300 hover:bg-indigo-500/15 rounded-lg transition-colors border border-transparent hover:border-indigo-500/30"
+                            className="p-2 text-[var(--c-placeholder)] hover:text-[var(--c-accent)] hover:bg-[var(--c-accent-bg)] rounded-lg transition-colors border border-transparent hover:border-[var(--c-accent-border)]"
                             title="Edit Invoice"
                           >
                             <UserPenIcon size={14} />
@@ -321,7 +334,7 @@ export default function FilteredClientList({
                               event.stopPropagation();
                               handleDelete(inv.id);
                             }} 
-                            className="p-2 text-white/40 hover:text-rose-300 hover:bg-rose-500/15 rounded-lg transition-colors border border-transparent hover:border-rose-500/30"
+                            className="p-2 text-[var(--c-placeholder)] hover:text-[var(--c-danger)] hover:bg-[var(--c-danger-bg)] rounded-lg transition-colors border border-transparent hover:border-[var(--c-danger-border)]"
                             title="Delete Invoice"
                           >
                             <Trash2Icon size={14} />
@@ -336,6 +349,7 @@ export default function FilteredClientList({
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

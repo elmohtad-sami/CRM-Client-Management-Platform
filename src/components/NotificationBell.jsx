@@ -77,7 +77,7 @@ export default function NotificationBellIcon() {
     <div ref={rootRef} className="relative">
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.12] bg-white/[0.06] text-white/60 shadow-sm transition-colors hover:bg-white/10 hover:text-white backdrop-blur-sm"
+        className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--c-border-md)] bg-[var(--c-surface)] text-[var(--c-text-2)] shadow-sm transition-colors hover:bg-[var(--c-element-hover)] hover:text-[var(--c-text)] backdrop-blur-sm"
         aria-label="Notifications"
         title="Notifications"
       >
@@ -90,16 +90,16 @@ export default function NotificationBellIcon() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-3 w-96 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-white/[0.12] bg-black/80 backdrop-blur-2xl shadow-2xl">
-          <div className="flex items-center justify-between border-b border-white/[0.08] px-4 py-2.5">
+        <div className="absolute right-0 top-full z-50 mt-3 w-96 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-[var(--c-border-md)] bg-[var(--c-overlay)] backdrop-blur-2xl shadow-2xl">
+          <div className="flex items-center justify-between border-b border-[var(--c-border)] px-4 py-2.5">
             <div>
-              <p className="text-xs font-bold text-white">Notifications</p>
-              <p className="text-[11px] text-white/40">Due invoices in the next 48 hours</p>
+              <p className="text-xs font-bold text-[var(--c-text)]">Notifications</p>
+              <p className="text-[11px] text-[var(--c-placeholder)]">Due invoices in the next 48 hours</p>
             </div>
             {notifications.length > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="rounded-lg border border-white/[0.12] bg-white/10 px-3 py-1.5 text-xs font-semibold text-white/80 transition-colors hover:bg-white/20"
+                className="rounded-lg border border-[var(--c-border-md)] bg-[var(--c-element)] px-3 py-1.5 text-xs font-semibold text-[var(--c-text)] transition-colors hover:bg-[var(--c-element-hover)]"
               >
                 Mark all as read
               </button>
@@ -108,7 +108,7 @@ export default function NotificationBellIcon() {
 
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="px-4 py-6 text-center text-xs text-white/40">
+              <div className="px-4 py-6 text-center text-xs text-[var(--c-placeholder)]">
                 No upcoming invoice notifications.
               </div>
             ) : (
@@ -118,17 +118,17 @@ export default function NotificationBellIcon() {
                 return (
                   <div
                     key={notification.key}
-                    className={`border-b border-white/[0.05] px-4 py-3 transition-colors last:border-b-0 ${isUnread ? 'bg-white/[0.06]' : 'bg-transparent'}`}
+                    className={`border-b border-[var(--c-border)] px-4 py-3 transition-colors last:border-b-0 ${isUnread ? 'bg-[var(--c-surface)]' : 'bg-transparent'}`}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-white">{notification.clientName}</p>
-                          <p className="mt-0.5 text-[11px] text-white/40">Invoice ID: {notification.invoiceId}</p>
-                        <p className="mt-0.5 text-[11px] text-white/40">Due Date: {notification.dueDateLabel}</p>
+                        <p className="truncate text-sm font-semibold text-[var(--c-text)]">{notification.clientName}</p>
+                          <p className="mt-0.5 text-[11px] text-[var(--c-placeholder)]">Invoice ID: {notification.invoiceId}</p>
+                        <p className="mt-0.5 text-[11px] text-[var(--c-placeholder)]">Due Date: {notification.dueDateLabel}</p>
                       </div>
-                      <span className={`mt-1 inline-flex h-2.5 w-2.5 rounded-full ${isUnread ? 'bg-rose-500' : 'bg-white/30'}`} />
+                      <span className={`mt-1 inline-flex h-2.5 w-2.5 rounded-full ${isUnread ? 'bg-rose-500' : 'bg-[var(--c-element-hover-2)]'}`} />
                     </div>
-                    <p className="mt-3 text-sm text-amber-300">{notification.message}</p>
+                    <p className="mt-3 text-sm text-[var(--c-warning)]">{notification.message}</p>
                   </div>
                 );
               })

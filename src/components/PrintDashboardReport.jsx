@@ -60,15 +60,15 @@ export default function PrintDashboardReport({ stats, monthlyRevenueData, invoic
 
       <section className="mb-6 grid grid-cols-3 gap-4 print-no-break">
         <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Revenue</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--c-text-3)]">Total Revenue</p>
           <p className="mt-3 text-3xl font-black text-slate-900">{formatCurrency(totalRevenue)}</p>
         </article>
         <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Solvability Rate</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--c-text-3)]">Solvability Rate</p>
           <p className="mt-3 text-3xl font-black text-slate-900">{solvabilityRate}%</p>
         </article>
         <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Regulatory Risks</p>
+          <p className="text-xs font-bold uppercase tracking-wider text-[var(--c-text-3)]">Regulatory Risks</p>
           <p className="mt-3 text-3xl font-black text-slate-900">{regulatoryRisks}</p>
         </article>
       </section>
@@ -101,26 +101,26 @@ export default function PrintDashboardReport({ stats, monthlyRevenueData, invoic
           </div>
         </article>
 
-        <article className="rounded-2xl border border-white/10 bg-black p-5 text-white">
+        <article className="rounded-2xl border border-[var(--c-border)] bg-[var(--c-bg)] p-5 text-[var(--c-text)]">
           <h2 className="text-lg font-bold">Portfolio Overview</h2>
-          <p className="mt-1 text-sm text-slate-400">Snapshot of client trust and reliability.</p>
+          <p className="mt-1 text-sm text-[var(--c-text-3)]">Snapshot of client trust and reliability.</p>
 
           <div className="mt-5 space-y-3">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Assessed</p>
-              <p className="mt-1 text-2xl font-black text-white">{totalAssessed}</p>
+            <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-element)] p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-[var(--c-text-3)]">Total Assessed</p>
+              <p className="mt-1 text-2xl font-black text-[var(--c-text)]">{totalAssessed}</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-300">Solvable Clients</p>
-              <p className="mt-1 text-2xl font-black text-white">{solvableClients}</p>
+            <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-element)] p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-[var(--c-positive)]">Solvable Clients</p>
+              <p className="mt-1 text-2xl font-black text-[var(--c-text)]">{solvableClients}</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-blue-300">Fidèle Clients</p>
-              <p className="mt-1 text-2xl font-black text-white">{fideleClients}</p>
+            <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-element)] p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-[var(--c-info)]">Fidèle Clients</p>
+              <p className="mt-1 text-2xl font-black text-[var(--c-text)]">{fideleClients}</p>
             </div>
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-              <p className="text-xs font-bold uppercase tracking-wider text-rose-300">Insolvable Clients</p>
-              <p className="mt-1 text-2xl font-black text-white">{insolvableClients}</p>
+            <div className="rounded-xl border border-[var(--c-border)] bg-[var(--c-element)] p-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-[var(--c-danger)]">Insolvable Clients</p>
+              <p className="mt-1 text-2xl font-black text-[var(--c-text)]">{insolvableClients}</p>
             </div>
           </div>
         </article>

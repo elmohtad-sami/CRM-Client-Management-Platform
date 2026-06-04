@@ -96,38 +96,38 @@ export default function NotesSection({ clientId, notes = [], canAdd, currentUser
   };
 
   return (
-    <section className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6 transition-all duration-300">
-      <h2 className="text-lg font-bold text-white">Notes Section</h2>
+    <section className="bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] rounded-2xl shadow-[var(--c-glow)] p-6 transition-all duration-300">
+      <h2 className="text-lg font-bold text-[var(--c-text)]">Notes Section</h2>
 
       {canAdd && (
         <form onSubmit={submit} className="mt-4 flex flex-col gap-2 sm:flex-row">
           <input
             value={value}
             onChange={(event) => setValue(event.target.value)}
-            className="flex-1 rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30"
+            className="flex-1 rounded-xl border border-[var(--c-border-strong)] bg-[var(--c-element)] px-4 py-2.5 text-sm text-[var(--c-text)] placeholder-[var(--c-placeholder)] outline-none focus:ring-2 focus:ring-[var(--c-border)]"
             placeholder="Add a new note..."
           />
-          <button type="submit" className="bg-white/15 hover:bg-white/25 text-white rounded-xl backdrop-blur-sm border border-white/10 px-4 py-2.5 text-xs uppercase tracking-wider font-bold transition-colors">
+          <button type="submit" className="bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] rounded-xl backdrop-blur-sm border border-[var(--c-border)] px-4 py-2.5 text-xs uppercase tracking-wider font-bold transition-colors">
             Add note
           </button>
         </form>
       )}
 
-      {loading && <p className="mt-2 text-sm text-white/50">Saving...</p>}
+      {loading && <p className="mt-2 text-sm text-[var(--c-text-3)]">Saving...</p>}
 
       <div className="mt-4 space-y-3">
         {localNotes.map((note) => (
-          <article key={note.id} className="rounded-xl border border-white/[0.08] bg-white/[0.04] p-4">
+          <article key={note.id} className="rounded-xl border border-[var(--c-border)] bg-[var(--c-elevated)] p-4">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-white">{note.author}</p>
+              <p className="text-sm font-semibold text-[var(--c-text)]">{note.author}</p>
               <div className="flex items-center gap-2">
-                <p className="text-[11px] font-medium uppercase tracking-wider text-white/50">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--c-text-3)]">
                   {new Date(note.date).toLocaleDateString()}
                 </p>
                 <button
                   type="button"
                   onClick={() => startEditing(note)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.12] bg-white/10 text-white/70 hover:bg-white/20 transition-colors"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--c-border-md)] bg-[var(--c-element)] text-[var(--c-text-2)] hover:bg-[var(--c-element-hover)] transition-colors"
                   title="Edit note"
                 >
                   <UserPenIcon size={14} />
@@ -135,7 +135,7 @@ export default function NotesSection({ clientId, notes = [], canAdd, currentUser
                 <button
                   type="button"
                   onClick={() => deleteNote(note.id)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition-colors"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] text-[var(--c-danger)] hover:bg-[var(--c-danger-hover)] transition-colors"
                   title="Delete note"
                 >
                   <Trash2Icon size={14} />
@@ -148,27 +148,27 @@ export default function NotesSection({ clientId, notes = [], canAdd, currentUser
                   value={editingValue}
                   onChange={(event) => setEditingValue(event.target.value)}
                   rows={3}
-                  className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-white/30 resize-none"
+                  className="w-full rounded-xl border border-[var(--c-border-strong)] bg-[var(--c-element)] px-4 py-2.5 text-sm text-[var(--c-text)] placeholder-[var(--c-placeholder)] outline-none focus:ring-2 focus:ring-[var(--c-border)] resize-none"
                 />
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => saveEditing(note.id)}
-                    className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white rounded-xl backdrop-blur-sm border border-white/10 px-4 py-2 text-xs font-semibold transition-colors"
+                    className="inline-flex items-center gap-2 bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] rounded-xl backdrop-blur-sm border border-[var(--c-border)] px-4 py-2 text-xs font-semibold transition-colors"
                   >
                     <CheckIcon size={14} /> Save
                   </button>
                   <button
                     type="button"
                     onClick={cancelEditing}
-                    className="inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.04] px-4 py-2 text-xs font-semibold text-white/70 transition-colors hover:bg-white/10"
+                    className="inline-flex items-center gap-2 rounded-xl border border-[var(--c-border-md)] bg-[var(--c-elevated)] px-4 py-2 text-xs font-semibold text-[var(--c-text-2)] transition-colors hover:bg-[var(--c-element-hover)]"
                   >
                     <XIcon size={14} /> Cancel
                   </button>
                 </div>
               </div>
             ) : (
-              <p className="mt-2 text-sm text-white/70 leading-6">{note.content || note.text}</p>
+              <p className="mt-2 text-sm text-[var(--c-text-2)] leading-6">{note.content || note.text}</p>
             )}
           </article>
         ))}

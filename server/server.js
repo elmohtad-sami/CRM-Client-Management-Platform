@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const clientRoutes = require('./routes/clientRoutes');
+const devisRoutes = require('./routes/devisRoutes');
 const { authenticateToken } = require('./middleware/authMiddleware');
 const errorHandler = require('./middleware/errorHandler');
 
@@ -34,6 +35,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/clients', authenticateToken, clientRoutes);
+app.use('/api/devis', authenticateToken, devisRoutes);
 
 app.use(errorHandler);
 //connection db and start server

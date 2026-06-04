@@ -3,6 +3,7 @@ import { jsPDF } from 'jspdf';
 import { ClipboardIcon, XIcon } from '@animateicons/react/lucide';
 import autoTable from 'jspdf-autotable';
 import { useClients } from '../context/ClientsContext';
+import { DatePicker } from './ui/date-picker';
 
 export default function InvoiceCreator() {
   const { createInvoice } = useClients();
@@ -185,7 +186,7 @@ export default function InvoiceCreator() {
       {/* Generate Invoice Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2.5 font-bold text-white text-xs uppercase tracking-wider shadow-md transition hover:bg-white/25 backdrop-blur-sm border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
+        className="inline-flex items-center gap-2 rounded-xl bg-[var(--c-element)] px-4 py-2.5 font-bold text-[var(--c-text)] text-xs uppercase tracking-wider shadow-md transition hover:bg-[var(--c-element-hover-2)] backdrop-blur-sm border border-[var(--c-border)] focus:outline-none focus:ring-2 focus:ring-[var(--c-border)] focus:ring-offset-2"
       >
         <ClipboardIcon size={14} />
         <span>Generate New Invoice</span>
@@ -193,17 +194,17 @@ export default function InvoiceCreator() {
 
       {/* Modal Overlay */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xl px-4 py-6">
-          <div className="relative h-screen w-full max-w-6xl overflow-y-auto rounded-2xl bg-black/70 backdrop-blur-2xl shadow-2xl border border-white/[0.12]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--c-overlay)] backdrop-blur-xl px-4 py-6">
+          <div className="relative h-screen w-full max-w-6xl overflow-y-auto rounded-2xl bg-[var(--c-overlay)] backdrop-blur-2xl shadow-2xl border border-[var(--c-border-md)]">
             {/* Modal Header */}
-            <div className="sticky top-0 flex items-center justify-between border-b border-white/[0.08] bg-black/40 backdrop-blur-xl px-6 py-4">
+            <div className="sticky top-0 flex items-center justify-between border-b border-[var(--c-border)] bg-[var(--c-overlay)] backdrop-blur-xl px-6 py-4">
               <div>
-                <h2 className="text-xl font-bold text-white">Create New Invoice</h2>
-                <p className="text-xs text-white/50">Fill in the form and see your invoice preview in real-time</p>
+                <h2 className="text-xl font-bold text-[var(--c-text)]">Create New Invoice</h2>
+                <p className="text-xs text-[var(--c-text-3)]">Fill in the form and see your invoice preview in real-time</p>
               </div>
               <button
                 onClick={closeModal}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white/60 transition hover:bg-white/20 hover:text-white"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--c-element)] text-[var(--c-text-2)] transition hover:bg-[var(--c-element-hover)] hover:text-[var(--c-text)]"
               >
                 <XIcon size={18} />
               </button>
@@ -213,11 +214,11 @@ export default function InvoiceCreator() {
             <div className="px-8 py-6">
               <div className="mx-auto max-w-2xl">
                 {/* Form Section */}
-                <div className="rounded-xl bg-white/[0.04] p-6">
-                  <h3 className="mb-5 text-lg font-semibold text-white/80">Invoice Details</h3>
+                <div className="rounded-xl bg-[var(--c-elevated)] p-6">
+                  <h3 className="mb-5 text-lg font-semibold text-[var(--c-text)]">Invoice Details</h3>
                   <form className="space-y-2.5">
                     <div>
-                      <label htmlFor="clientName" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
+                      <label htmlFor="clientName" className="mb-2 block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider">
                         Client Name
                       </label>
                       <input
@@ -226,13 +227,13 @@ export default function InvoiceCreator() {
                         type="text"
                         value={invoiceData.clientName}
                         onChange={handleChange}
-                        placeholder="John Doe"
-                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
+                        placeholder="name"
+                        className="w-full rounded-xl border border-[var(--c-border-strong)] bg-[var(--c-element)] px-4 py-2.5 text-sm text-[var(--c-text)] placeholder-[var(--c-placeholder)] outline-none transition focus:ring-2 focus:ring-[var(--c-border)]"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="phone" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
+                      <label htmlFor="phone" className="mb-2 block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider">
                         Client Phone
                       </label>
                       <input
@@ -242,12 +243,12 @@ export default function InvoiceCreator() {
                         value={invoiceData.phone}
                         onChange={handleChange}
                         placeholder="+212 6 00 00 00 00"
-                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
+                        className="w-full rounded-xl border border-[var(--c-border-strong)] bg-[var(--c-element)] px-4 py-2.5 text-sm text-[var(--c-text)] placeholder-[var(--c-placeholder)] outline-none transition focus:ring-2 focus:ring-[var(--c-border)]"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="address" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
+                      <label htmlFor="address" className="mb-2 block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider">
                         Client Address
                       </label>
                       <input
@@ -257,12 +258,12 @@ export default function InvoiceCreator() {
                         value={invoiceData.address}
                         onChange={handleChange}
                         placeholder="Casablanca, Morocco"
-                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
+                        className="w-full rounded-xl border border-[var(--c-border-strong)] bg-[var(--c-element)] px-4 py-2.5 text-sm text-[var(--c-text)] placeholder-[var(--c-placeholder)] outline-none transition focus:ring-2 focus:ring-[var(--c-border)]"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="email" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
+                      <label htmlFor="email" className="mb-2 block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider">
                         Client Email
                       </label>
                       <input
@@ -272,12 +273,12 @@ export default function InvoiceCreator() {
                         value={invoiceData.email}
                         onChange={handleChange}
                         placeholder="client@example.com"
-                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
+                        className="w-full rounded-xl border border-[var(--c-border-strong)] bg-[var(--c-element)] px-4 py-2.5 text-sm text-[var(--c-text)] placeholder-[var(--c-placeholder)] outline-none transition focus:ring-2 focus:ring-[var(--c-border)]"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="invoiceNumber" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
+                      <label htmlFor="invoiceNumber" className="mb-2 block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider">
                         Invoice Number
                       </label>
                       <input
@@ -287,26 +288,23 @@ export default function InvoiceCreator() {
                         value={invoiceData.invoiceNumber}
                         onChange={handleChange}
                         placeholder="2026-001"
-                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
+                        className="w-full rounded-xl border border-[var(--c-border-strong)] bg-[var(--c-element)] px-4 py-2.5 text-sm text-[var(--c-text)] placeholder-[var(--c-placeholder)] outline-none transition focus:ring-2 focus:ring-[var(--c-border)]"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="dueDate" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
+                      <label htmlFor="dueDate" className="mb-2 block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider">
                         Due Date
                       </label>
-                      <input
-                        id="dueDate"
-                        name="dueDate"
-                        type="date"
+                      <DatePicker
                         value={invoiceData.dueDate}
-                        onChange={handleChange}
-                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white outline-none transition focus:ring-2 focus:ring-white/30"
+                        onChange={(val) => setInvoiceData((prev) => ({ ...prev, dueDate: val }))}
+                        placeholder="Pick a date"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="amountHT" className="mb-2 block text-[11px] font-semibold text-white/70 uppercase tracking-wider">
+                      <label htmlFor="amountHT" className="mb-2 block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider">
                         Amount HT (DH)
                       </label>
                       <input
@@ -318,18 +316,18 @@ export default function InvoiceCreator() {
                         value={invoiceData.amountHT}
                         onChange={handleChange}
                         placeholder="1200.00"
-                        className="w-full rounded-xl border border-white/[0.15] bg-white/[0.08] px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:ring-2 focus:ring-white/30"
+                        className="w-full rounded-xl border border-[var(--c-border-strong)] bg-[var(--c-element)] px-4 py-2.5 text-sm text-[var(--c-text)] placeholder-[var(--c-placeholder)] outline-none transition focus:ring-2 focus:ring-[var(--c-border)]"
                       />
                     </div>
 
                     <div className="space-y-2 pt-2">
-                      <div className="flex justify-between rounded-xl bg-white/[0.06] px-4 py-2.5">
-                        <span className="font-medium text-white/70">TVA (20%)</span>
-                        <span className="text-white">{parseFloat(vatAmount).toFixed(2)} €</span>
+                      <div className="flex justify-between rounded-xl bg-[var(--c-surface)] px-4 py-2.5">
+                        <span className="font-medium text-[var(--c-text-2)]">TVA (20%)</span>
+                        <span className="text-[var(--c-text)]">{parseFloat(vatAmount).toFixed(2)} DH</span>
                       </div>
-                      <div className="flex justify-between rounded-xl bg-white/10 px-4 py-2.5">
-                        <span className="font-semibold text-white">Total TTC</span>
-                        <span className="text-lg font-semibold text-white/80">{parseFloat(totalTTC).toFixed(2)} €</span>
+                      <div className="flex justify-between rounded-xl bg-[var(--c-element)] px-4 py-2.5">
+                        <span className="font-semibold text-[var(--c-text)]">Total TTC</span>
+                        <span className="text-lg font-semibold text-[var(--c-text)]">{parseFloat(totalTTC).toFixed(2)} DH</span>
                       </div>
                     </div>
 
@@ -337,7 +335,7 @@ export default function InvoiceCreator() {
                       <button
                         type="button"
                         onClick={closeModal}
-                        className="flex-1 rounded-xl border border-white/[0.12] bg-white/[0.04] px-4 py-2.5 font-medium text-white/70 text-xs uppercase tracking-wider transition hover:bg-white/10"
+                        className="flex-1 rounded-xl border border-[var(--c-border-md)] bg-[var(--c-elevated)] px-4 py-2.5 font-medium text-[var(--c-text-2)] text-xs uppercase tracking-wider transition hover:bg-[var(--c-element-hover)]"
                       >
                         Cancel
                       </button>
@@ -345,7 +343,7 @@ export default function InvoiceCreator() {
                         type="button"
                         onClick={downloadPDF}
                         disabled={isCreating}
-                        className="flex-1 rounded-xl bg-white/15 px-4 py-2.5 font-bold text-white text-xs uppercase tracking-wider transition hover:bg-white/25 backdrop-blur-sm border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2"
+                        className="flex-1 rounded-xl bg-[var(--c-element)] px-4 py-2.5 font-bold text-[var(--c-text)] text-xs uppercase tracking-wider transition hover:bg-[var(--c-element-hover-2)] backdrop-blur-sm border border-[var(--c-border)] focus:outline-none focus:ring-2 focus:ring-[var(--c-border)] focus:ring-offset-2"
                       >
                         {isCreating ? 'Saving...' : 'Create & Download PDF'}
                       </button>

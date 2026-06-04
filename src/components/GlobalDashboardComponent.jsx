@@ -61,8 +61,8 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
         {/* Dashboard Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 no-print" data-html2canvas-ignore data-print-hide>
           <div>
-            <h1 className="text-2xl font-bold text-white">Financial Dashboard</h1>
-            <p className="text-xs text-white/50 mt-1">Real-time overview of your portfolio performance and risk metrics</p>
+            <h1 className="text-2xl font-bold text-[var(--c-text)]">Financial Dashboard</h1>
+            <p className="text-xs text-[var(--c-text-3)] mt-1">Real-time overview of your portfolio performance and risk metrics</p>
           </div>
           <div className="flex items-center gap-2">
             <ReportDownloadButton stats={stats} monthlyRevenueData={monthlyRevenueData} />
@@ -72,50 +72,50 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
 
         {/* Stats Grid */}
         <div className="print-stats-grid grid grid-cols-1 md:grid-cols-3 gap-4 print-no-break">
-          <div className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-5 shadow-[0_0_40px_rgba(255,255,255,0.03)] relative overflow-hidden group hover:bg-white/[0.09] transition-all">
+          <div className="bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] rounded-2xl p-5 shadow-[var(--c-glow)] relative overflow-hidden group hover:bg-[var(--c-surface-hover)] transition-all">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500/60 to-emerald-400/20" />
             <div className="flex items-start justify-between">
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">Total Revenue</p>
-                <p className="text-2xl font-black text-white mt-1.5 tracking-tight truncate">{totalRevenue.toLocaleString('fr-FR')} MAD</p>
-                <p className="text-[11px] text-emerald-400/70 mt-1 font-medium">Current fiscal period</p>
+                <p className="text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider">Total Revenue</p>
+                <p className="text-2xl font-black text-[var(--c-text)] mt-1.5 tracking-tight truncate">{totalRevenue.toLocaleString('fr-FR')} MAD</p>
+                <p className="text-[11px] text-[var(--c-positive)]/70 mt-1 font-medium">Current fiscal period</p>
               </div>
-              <div className="w-11 h-11 rounded-xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center shrink-0 ml-3">
+              <div className="w-11 h-11 rounded-xl bg-[var(--c-positive-bg)] text-[var(--c-positive)] flex items-center justify-center shrink-0 ml-3">
                 <DollarSignIcon size={20} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-5 shadow-[0_0_40px_rgba(255,255,255,0.03)] relative overflow-hidden group hover:bg-white/[0.09] transition-all">
+          <div className="bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] rounded-2xl p-5 shadow-[var(--c-glow)] relative overflow-hidden group hover:bg-[var(--c-surface-hover)] transition-all">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/60 to-indigo-400/20" />
             <div className="flex items-start justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">Solvability Rate</p>
-                <p className="text-2xl font-black text-white mt-1.5 tracking-tight">{solvabilityRate}%</p>
-                <div className="mt-2 h-1.5 w-full max-w-[160px] bg-white/10 rounded-full overflow-hidden">
+                <p className="text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider">Solvability Rate</p>
+                <p className="text-2xl font-black text-[var(--c-text)] mt-1.5 tracking-tight">{solvabilityRate}%</p>
+                <div className="mt-2 h-1.5 w-full max-w-[160px] bg-[var(--c-element)] rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500"
                     style={{ width: `${Math.min(solvabilityRate, 100)}%` }}
                   />
                 </div>
               </div>
-              <div className="w-11 h-11 rounded-xl bg-white/15 text-white flex items-center justify-center shrink-0 ml-3">
+              <div className="w-11 h-11 rounded-xl bg-[var(--c-element)] text-[var(--c-text)] flex items-center justify-center shrink-0 ml-3">
                 <ActivityIcon size={20} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-5 shadow-[0_0_40px_rgba(255,255,255,0.03)] relative overflow-hidden group hover:bg-white/[0.09] transition-all">
+          <div className="bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] rounded-2xl p-5 shadow-[var(--c-glow)] relative overflow-hidden group hover:bg-[var(--c-surface-hover)] transition-all">
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-rose-500/60 to-rose-400/20" />
             <div className="flex items-start justify-between">
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">Regulatory Risks</p>
-                <p className="text-2xl font-black text-white mt-1.5 tracking-tight">{totalRisks}</p>
-                <p className="text-[11px] text-rose-400/70 mt-1 font-medium">
+                <p className="text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider">Regulatory Risks</p>
+                <p className="text-2xl font-black text-[var(--c-text)] mt-1.5 tracking-tight">{totalRisks}</p>
+                <p className="text-[11px] text-[var(--c-danger)]/70 mt-1 font-medium">
                   {totalRisks > 0 ? `${Math.round((totalRisks / Math.max(totalAssessed, 1)) * 100)}% of clients affected` : 'No anomalies detected'}
                 </p>
               </div>
-              <div className="w-11 h-11 rounded-xl bg-rose-500/15 text-rose-300 flex items-center justify-center shrink-0 ml-3">
+              <div className="w-11 h-11 rounded-xl bg-[var(--c-danger-bg)] text-[var(--c-danger)] flex items-center justify-center shrink-0 ml-3">
                 <ShieldXIcon size={20} />
               </div>
             </div>
@@ -125,13 +125,13 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
         {/* Chart + Portfolio */}
         <div className="print-chart-grid grid grid-cols-1 lg:grid-cols-3 gap-4 print-no-break">
           {/* Monthly Revenue Chart */}
-          <div className="lg:col-span-2 min-w-0 bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl p-6 shadow-[0_0_40px_rgba(255,255,255,0.03)] flex flex-col print-no-break">
+          <div className="lg:col-span-2 min-w-0 bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] rounded-2xl p-6 shadow-[var(--c-glow)] flex flex-col print-no-break">
             <div className="mb-5 flex justify-between items-center">
               <div>
-                <h3 className="text-base font-bold text-white">Monthly Revenue</h3>
-                <p className="text-xs text-white/50 mt-0.5">Revenue performance in MAD</p>
+                <h3 className="text-base font-bold text-[var(--c-text)]">Monthly Revenue</h3>
+                <p className="text-xs text-[var(--c-text-3)] mt-0.5">Revenue performance in MAD</p>
               </div>
-              <div className="flex items-center gap-1.5 text-[11px] text-white/40">
+              <div className="flex items-center gap-1.5 text-[11px] text-[var(--c-placeholder)]">
                 <span className="inline-block w-2.5 h-2.5 rounded-sm bg-gradient-to-b from-violet-400 to-indigo-500" />
                 <span>Revenue</span>
               </div>
@@ -163,10 +163,10 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
                   <Bar dataKey="revenue" fill="url(#monthlyRevenueGradient)" radius={[4, 4, 0, 0]} barSize={36} />
                 </BarChart>
               ) : (
-                <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-white/[0.12] bg-white/[0.04] text-center">
+                <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-[var(--c-border-md)] bg-[var(--c-elevated)] text-center">
                   <div>
-                    <p className="text-sm font-semibold text-white/70">No client invoice data yet</p>
-                    <p className="mt-1 text-xs text-white/50">Add a client invoice to populate this chart.</p>
+                    <p className="text-sm font-semibold text-[var(--c-text-2)]">No client invoice data yet</p>
+                    <p className="mt-1 text-xs text-[var(--c-text-3)]">Add a client invoice to populate this chart.</p>
                   </div>
                 </div>
               )}
@@ -174,66 +174,66 @@ export default function GlobalDashboardComponent({ stats, monthlyRevenueData, ch
           </div>
 
           {/* Portfolio Overview */}
-          <div className="bg-white/[0.06] backdrop-blur-2xl rounded-2xl p-6 shadow-[0_0_40px_rgba(255,255,255,0.03)] border border-white/[0.12] flex flex-col relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-indigo-500/15 rounded-full blur-3xl -mr-12 -mt-12 pointer-events-none" />
+          <div className="bg-[var(--c-surface)] backdrop-blur-2xl rounded-2xl p-6 shadow-[var(--c-glow)] border border-[var(--c-border-md)] flex flex-col relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[var(--c-accent-bg)] rounded-full blur-3xl -mr-12 -mt-12 pointer-events-none" />
             <div className="relative z-10 flex flex-col h-full">
               <div className="mb-5">
-                <h3 className="text-base font-bold text-white">Portfolio</h3>
-                <p className="text-xs text-white/50 mt-0.5">Client breakdown by trust level</p>
+                <h3 className="text-base font-bold text-[var(--c-text)]">Portfolio</h3>
+                <p className="text-xs text-[var(--c-text-3)] mt-0.5">Client breakdown by trust level</p>
               </div>
               <div className="space-y-2.5 flex-1">
-                <button onClick={() => changeView('solvable')} className="w-full flex items-center justify-between bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] p-3 rounded-xl transition-all group">
+                <button onClick={() => changeView('solvable')} className="w-full flex items-center justify-between bg-[var(--c-elevated)] hover:bg-[var(--c-element)] border border-[var(--c-border)] p-3 rounded-xl transition-all group">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-[var(--c-positive-hover)] text-[var(--c-positive)] flex items-center justify-center shrink-0">
                       <ShieldCheckIcon size={16} />
                     </div>
                     <div className="text-left min-w-0">
-                      <p className="font-semibold text-emerald-50 text-xs truncate">Solvable</p>
-                      <p className="text-[11px] text-white/50 truncate">Reliable payments</p>
+                      <p className="font-semibold text-[var(--c-positive)] text-xs truncate">Solvable</p>
+                      <p className="text-[11px] text-[var(--c-text-3)] truncate">Reliable payments</p>
                     </div>
                   </div>
                   <div className="flex items-baseline gap-1 shrink-0 ml-2">
-                    <span className="text-lg font-black text-white">{solvableClients}</span>
-                    <span className="text-[10px] text-white/30">clients</span>
+                    <span className="text-lg font-black text-[var(--c-text)]">{solvableClients}</span>
+                    <span className="text-[10px] text-[var(--c-placeholder)]">clients</span>
                   </div>
                 </button>
-                <button onClick={() => changeView('fidèle')} className="w-full flex items-center justify-between bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] p-3 rounded-xl transition-all group">
+                <button onClick={() => changeView('fidèle')} className="w-full flex items-center justify-between bg-[var(--c-elevated)] hover:bg-[var(--c-element)] border border-[var(--c-border)] p-3 rounded-xl transition-all group">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-[var(--c-info-hover)] text-[var(--c-info)] flex items-center justify-center shrink-0">
                       <StarIcon size={16} />
                     </div>
                     <div className="text-left min-w-0">
-                      <p className="font-semibold text-blue-50 text-xs truncate">Fidèle</p>
-                      <p className="text-[11px] text-white/50 truncate">High retention rate</p>
+                      <p className="font-semibold text-[var(--c-info)] text-xs truncate">Fidèle</p>
+                      <p className="text-[11px] text-[var(--c-text-3)] truncate">High retention rate</p>
                     </div>
                   </div>
                   <div className="flex items-baseline gap-1 shrink-0 ml-2">
-                    <span className="text-lg font-black text-white">{fideleClients}</span>
-                    <span className="text-[10px] text-white/30">clients</span>
+                    <span className="text-lg font-black text-[var(--c-text)]">{fideleClients}</span>
+                    <span className="text-[10px] text-[var(--c-placeholder)]">clients</span>
                   </div>
                 </button>
-                <button onClick={() => changeView('insolvable')} className="w-full flex items-center justify-between bg-white/[0.04] hover:bg-white/[0.08] border border-rose-500/30 p-3 rounded-xl transition-all group">
+                <button onClick={() => changeView('insolvable')} className="w-full flex items-center justify-between bg-[var(--c-elevated)] hover:bg-[var(--c-element)] border border-[var(--c-danger-border)] p-3 rounded-xl transition-all group">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-[var(--c-danger-hover)] text-[var(--c-danger)] flex items-center justify-center shrink-0">
                       <ShieldXIcon size={16} />
                     </div>
                     <div className="text-left min-w-0">
-                      <p className="font-semibold text-red-50 text-xs truncate">Insolvable</p>
-                      <p className="text-[11px] text-white/50 truncate">High default risk</p>
+                      <p className="font-semibold text-[var(--c-danger)] text-xs truncate">Insolvable</p>
+                      <p className="text-[11px] text-[var(--c-text-3)] truncate">High default risk</p>
                     </div>
                   </div>
                   <div className="flex items-baseline gap-1 shrink-0 ml-2">
-                    <span className="text-lg font-black text-white">{insolvableClients}</span>
-                    <span className="text-[10px] text-white/30">clients</span>
+                    <span className="text-lg font-black text-[var(--c-text)]">{insolvableClients}</span>
+                    <span className="text-[10px] text-[var(--c-placeholder)]">clients</span>
                   </div>
                 </button>
               </div>
-              <div className="mt-auto pt-4 border-t border-white/[0.08]">
+              <div className="mt-auto pt-4 border-t border-[var(--c-border)]">
                 <div className="flex items-center justify-between">
-                  <p className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">Total Assessed</p>
+                  <p className="text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider">Total Assessed</p>
                   <div className="flex items-baseline gap-1">
-                    <span className="text-lg font-black text-white">{totalAssessed}</span>
-                    <span className="text-[10px] text-white/40">clients</span>
+                    <span className="text-lg font-black text-[var(--c-text)]">{totalAssessed}</span>
+                    <span className="text-[10px] text-[var(--c-placeholder)]">clients</span>
                   </div>
                 </div>
               </div>

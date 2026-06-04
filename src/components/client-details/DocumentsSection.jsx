@@ -19,14 +19,14 @@ export default function DocumentsSection({ documents = [], canUpload, onUpload, 
   };
 
   return (
-    <section className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6 transition-all duration-300">
-      <h2 className="text-lg font-bold text-white">Documents Section</h2>
+    <section className="bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] rounded-2xl shadow-[var(--c-glow)] p-6 transition-all duration-300">
+      <h2 className="text-lg font-bold text-[var(--c-text)]">Documents Section</h2>
 
       {canUpload && (
-        <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/[0.15] bg-white/[0.04] px-6 py-8 text-center transition-colors hover:border-white/30 hover:bg-white/10">
-          <UploadIcon size={20} className="text-white" />
-          <span className="mt-3 text-sm font-semibold text-white">Upload documents</span>
-          <span className="mt-1 text-[11px] text-white/50">Front-end only (mock UI)</span>
+        <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[var(--c-border-strong)] bg-[var(--c-elevated)] px-6 py-8 text-center transition-colors hover:border-[var(--c-border)] hover:bg-[var(--c-element-hover)]">
+          <UploadIcon size={20} className="text-[var(--c-text)]" />
+          <span className="mt-3 text-sm font-semibold text-[var(--c-text)]">Upload documents</span>
+          <span className="mt-1 text-[11px] text-[var(--c-text-3)]">Front-end only (mock UI)</span>
           <input
             type="file"
             multiple
@@ -38,10 +38,10 @@ export default function DocumentsSection({ documents = [], canUpload, onUpload, 
 
       <div className="mt-4 space-y-3">
         {documents.map((doc) => (
-          <div key={doc.id} className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-2.5 flex items-center justify-between gap-2">
+          <div key={doc.id} className="rounded-xl border border-[var(--c-border)] bg-[var(--c-elevated)] px-4 py-2.5 flex items-center justify-between gap-2">
             <div>
-              <p className="text-sm font-semibold text-white">{doc.name}</p>
-              <p className="text-[11px] text-white/50">{doc.uploadDate ? new Date(doc.uploadDate).toLocaleDateString() : doc.size}</p>
+              <p className="text-sm font-semibold text-[var(--c-text)]">{doc.name}</p>
+              <p className="text-[11px] text-[var(--c-text-3)]">{doc.uploadDate ? new Date(doc.uploadDate).toLocaleDateString() : doc.size}</p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -74,13 +74,13 @@ export default function DocumentsSection({ documents = [], canUpload, onUpload, 
                   alert('No preview available for this document.');
                 }}
                 title="View document"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-1 text-xs font-semibold text-white/70 hover:bg-white/10 transition-colors"
+                className="inline-flex items-center gap-2 rounded-lg border border-[var(--c-border-md)] bg-[var(--c-elevated)] px-3 py-1 text-xs font-semibold text-[var(--c-text-2)] hover:bg-[var(--c-element-hover)] transition-colors"
               >
                 <EyeIcon size={14} />
                 View
               </button>
 
-              <span className="inline-flex rounded-full border border-white/[0.12] bg-white/[0.04] px-3 py-1 text-xs font-semibold text-white/50">Ready</span>
+              <span className="inline-flex rounded-full border border-[var(--c-border-md)] bg-[var(--c-elevated)] px-3 py-1 text-xs font-semibold text-[var(--c-text-3)]">Ready</span>
             </div>
           </div>
         ))}

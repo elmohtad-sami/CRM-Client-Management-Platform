@@ -88,7 +88,7 @@ const Dashboard = () => {
             <InvoiceCreator />
             <button
               onClick={handleLogout}
-              className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
+              className="rounded-lg bg-red-600 px-4 py-2 font-semibold text-[var(--c-text)] transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
             >
               Logout
             </button>
@@ -175,17 +175,17 @@ const Dashboard = () => {
           </div>
 
           {/* Portfolio Overview */}
-          <div className="rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white shadow-sm">
+          <div className="rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-[var(--c-text)] shadow-sm">
             <h2 className="mb-6 text-xl font-bold">Portfolio Overview</h2>
 
             {/* Total Assessed */}
             <div className="mb-6 flex items-center rounded-lg bg-white bg-opacity-10 p-4">
               <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-500 bg-opacity-20">
-                <span className="text-lg font-bold text-blue-300">📊</span>
+                <span className="text-lg font-bold text-[var(--c-info)]">📊</span>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-300">Total Assessed</p>
-                <p className="text-2xl font-bold text-white">{totalAssessed}</p>
+                <p className="text-sm font-medium text-[var(--c-text-3)]">Total Assessed</p>
+                <p className="text-2xl font-bold text-[var(--c-text)]">{totalAssessed}</p>
               </div>
             </div>
 
@@ -195,7 +195,7 @@ const Dashboard = () => {
                 <span className="text-lg font-bold text-green-300">✓</span>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-300">Solvable Clients</p>
+                <p className="text-sm font-medium text-[var(--c-text-3)]">Solvable Clients</p>
                 <p className="text-2xl font-bold text-green-300">{solvableClients}</p>
               </div>
             </div>
@@ -203,11 +203,11 @@ const Dashboard = () => {
             {/* Insolvable Clients */}
             <div className="flex items-center rounded-lg bg-red-600 bg-opacity-20 p-4">
               <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500 bg-opacity-30">
-                <TriangleAlertIcon className="text-red-400" size={24} />
+                <TriangleAlertIcon className="text-[var(--c-danger)]" size={24} />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-300">Insolvable Clients</p>
-                <p className="text-2xl font-bold text-red-400">{insolvableClients}</p>
+                <p className="text-sm font-medium text-[var(--c-text-3)]">Insolvable Clients</p>
+                <p className="text-2xl font-bold text-[var(--c-danger)]">{insolvableClients}</p>
               </div>
             </div>
           </div>

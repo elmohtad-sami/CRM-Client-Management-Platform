@@ -36,13 +36,13 @@ export default function ClientDetailsPage({ clientId, onBack, startEditClient, c
 
   if (!client) {
     return (
-      <div className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6 text-white/70">
-        <p className="text-base font-semibold text-white">Client unavailable</p>
-        <p className="mt-1 text-sm text-white/60">We could not load this client profile. Please return to the dashboard and try again.</p>
+      <div className="bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] rounded-2xl shadow-[var(--c-glow)] p-6 text-[var(--c-text-2)]">
+        <p className="text-base font-semibold text-[var(--c-text)]">Client unavailable</p>
+        <p className="mt-1 text-sm text-[var(--c-text-2)]">We could not load this client profile. Please return to the dashboard and try again.</p>
         <button
           type="button"
           onClick={() => onBack?.()}
-          className="mt-4 inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-slate-800"
+          className="mt-4 inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-[var(--c-text)] transition-colors hover:bg-slate-800"
         >
           Back to Dashboard
         </button>
@@ -90,9 +90,9 @@ export default function ClientDetailsPage({ clientId, onBack, startEditClient, c
         canDelete={canDeleteClient}
       />
 
-      <div className="bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.03)] p-6">
+      <div className="bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] rounded-2xl shadow-[var(--c-glow)] p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <p className="text-sm font-medium text-white/60">
+          <p className="text-sm font-medium text-[var(--c-text-2)]">
             Use the edit and delete actions below to manage this client record. Activity Timeline is read-only.
           </p>
           <div className="flex flex-wrap gap-2">
@@ -100,7 +100,7 @@ export default function ClientDetailsPage({ clientId, onBack, startEditClient, c
               <button
                 type="button"
                 onClick={handleEditClient}
-                className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white rounded-xl backdrop-blur-sm border border-white/10 px-4 py-2.5 text-xs uppercase tracking-wider font-bold transition-colors"
+                className="inline-flex items-center gap-2 bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] rounded-xl backdrop-blur-sm border border-[var(--c-border)] px-4 py-2.5 text-xs uppercase tracking-wider font-bold transition-colors"
               >
                 Edit Client
               </button>
@@ -109,7 +109,7 @@ export default function ClientDetailsPage({ clientId, onBack, startEditClient, c
               <button
                 type="button"
                 onClick={handleDeleteClient}
-                className="inline-flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-2.5 text-xs uppercase tracking-wider font-bold text-rose-300 hover:bg-rose-500/20 transition-colors"
+                className="inline-flex items-center gap-2 rounded-xl border border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] px-4 py-2.5 text-xs uppercase tracking-wider font-bold text-[var(--c-danger)] hover:bg-[var(--c-danger-hover)] transition-colors"
               >
                 Delete Client
               </button>

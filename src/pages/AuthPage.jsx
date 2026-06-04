@@ -7,10 +7,10 @@ const AuthPage = () => {
   return (
     <div className="flex h-screen w-full bg-slate-50 font-sans overflow-hidden">
       {/* Left Side (Blue Welcome Panel) */}
-      <div className="hidden md:flex flex-col justify-center w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 text-white px-16 relative">
+      <div className="hidden md:flex flex-col justify-center w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 text-[var(--c-text)] px-16 relative">
         {/* Soft abstract circular background shapes */}
-        <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-[-10%] right-[-15%] w-[400px] h-[400px] bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-[-15%] left-[-10%] w-[500px] h-[500px] bg-[var(--c-element)] rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-[-10%] right-[-15%] w-[400px] h-[400px] bg-[var(--c-element)] rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] bg-blue-400/20 rounded-full blur-3xl pointer-events-none"></div>
         
         <div className="z-10 relative">
@@ -41,7 +41,7 @@ const AuthPage = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MailIcon className="h-5 w-5 text-slate-400" />
+                  <MailIcon className="h-5 w-5 text-[var(--c-text-3)]" />
                 </div>
                 <input 
                   id="email" 
@@ -58,7 +58,7 @@ const AuthPage = () => {
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LockIcon className="h-5 w-5 text-slate-400" />
+                  <LockIcon className="h-5 w-5 text-[var(--c-text-3)]" />
                 </div>
                 <input 
                   id="password" 
@@ -69,7 +69,7 @@ const AuthPage = () => {
                 <button 
                   type="button" 
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-blue-500 transition-colors cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--c-text-3)] hover:text-blue-500 transition-colors cursor-pointer"
                 >
                   {showPassword ? <EyeOffIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
                 </button>
@@ -96,7 +96,7 @@ const AuthPage = () => {
 
             <button 
               type="submit" 
-              className="w-full mt-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-medium py-3 px-4 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+              className="w-full mt-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-[var(--c-text)] font-medium py-3 px-4 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
             >
               Sign In
             </button>

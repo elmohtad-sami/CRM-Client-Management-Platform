@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { UserProvider } from './context/UserContext.jsx'
 import { ClientsProvider } from './context/ClientsContext.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 
@@ -12,6 +13,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <UserProvider>
+        <ThemeProvider>
         <ClientsProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
@@ -20,6 +22,7 @@ createRoot(document.getElementById('root')).render(
             <Route path="*" element={<App />} />
           </Routes>
         </ClientsProvider>
+        </ThemeProvider>
       </UserProvider>
     </BrowserRouter>
   </StrictMode>,

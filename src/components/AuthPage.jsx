@@ -125,69 +125,69 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
   // Verification form view
   if (awaitingVerification) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden font-sans">
+      <div className="min-h-screen bg-[var(--c-bg)] flex items-center justify-center relative overflow-hidden font-sans">
         <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.25) 0%, rgba(234,88,12,0.10) 50%, transparent 70%)' }} />
         <div className="absolute -top-20 -right-20 w-[450px] h-[450px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(217,70,239,0.25) 0%, rgba(147,51,234,0.10) 50%, transparent 70%)' }} />
-        <div className="w-[500px] h-[500px] rounded-full bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
+        <div className="w-[500px] h-[500px] rounded-full bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
           <div className="w-full max-w-[340px]">
             <div className="flex items-center gap-3 mb-5 justify-center">
-              <div className="p-2.5 bg-white/10 rounded-xl">
-                <CircleCheckIcon className="text-white" size={26} />
+              <div className="p-2.5 bg-[var(--c-element)] rounded-xl">
+                <CircleCheckIcon className="text-[var(--c-text)]" size={26} />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">Verify Email</h1>
-                <p className="text-xs text-white/50">Secure your account</p>
+                <h1 className="text-xl font-bold text-[var(--c-text)]">Verify Email</h1>
+                <p className="text-xs text-[var(--c-text-3)]">Secure your account</p>
               </div>
             </div>
             {error && (
-              <div className="mb-4 p-2.5 bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-medium rounded-xl text-center">
+              <div className="mb-4 p-2.5 bg-[var(--c-danger-bg)] border border-[var(--c-danger-border)] text-[var(--c-danger)] text-xs font-medium rounded-xl text-center">
                 {error}
               </div>
             )}
             {verificationMessage && (
-              <div className="mb-4 p-2.5 bg-blue-500/15 border border-blue-500/30 text-blue-300 text-xs font-medium rounded-xl flex items-center justify-center gap-2">
+              <div className="mb-4 p-2.5 bg-[var(--c-info-bg)] border border-[var(--c-info-border)] text-[var(--c-info)] text-xs font-medium rounded-xl flex items-center justify-center gap-2">
                 <BellIcon size={14} className="shrink-0" />
                 <span>{verificationMessage}</span>
               </div>
             )}
             <form onSubmit={handleVerificationSubmit} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1.5 text-center">Verification Code</label>
+                <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1.5 text-center">Verification Code</label>
                 <div className="relative">
                   <input
                     type="text"
-                    className="w-full px-4 py-2.5 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl focus:ring-2 focus:ring-white/30 outline-none transition-all font-medium text-center tracking-widest text-sm"
+                    className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-center tracking-widest text-sm"
                     placeholder="Enter the code from your email"
                     value={verificationCode}
                     onChange={(e) => setVerificationCode(e.target.value)}
                     maxLength="64"
                   />
                 </div>
-                <p className="text-[11px] text-white/40 mt-1.5 text-center">Check your email inbox or spam folder for the code.</p>
+                <p className="text-[11px] text-[var(--c-placeholder)] mt-1.5 text-center">Check your email inbox or spam folder for the code.</p>
               </div>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-white/15 hover:bg-white/25 text-white font-bold tracking-wide py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-white/10"
+                className="w-full bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] font-bold tracking-wide py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-[var(--c-border)]"
               >
                 {isSubmitting ? 'Verifying...' : 'Verify & Sign In'} <ChevronRightIcon size={14} />
               </button>
             </form>
-            <div className="mt-5 space-y-2.5 border-t border-white/10 pt-4">
-              <p className="text-[11px] text-white/40 text-center">Didn't receive the email?</p>
+            <div className="mt-5 space-y-2.5 border-t border-[var(--c-border)] pt-4">
+              <p className="text-[11px] text-[var(--c-placeholder)] text-center">Didn't receive the email?</p>
               <button
                 type="button"
                 onClick={handleResendVerification}
                 disabled={isSubmitting || resendCooldown > 0}
-                className="w-full py-2 px-4 bg-white/10 hover:bg-white/20 text-white/80 hover:text-white font-semibold rounded-xl transition-all disabled:opacity-40 text-xs backdrop-blur-sm border border-white/10"
+                className="w-full py-2 px-4 bg-[var(--c-element)] hover:bg-[var(--c-element-hover)] text-[var(--c-text)] hover:text-[var(--c-text)] font-semibold rounded-xl transition-all disabled:opacity-40 text-xs backdrop-blur-sm border border-[var(--c-border)]"
               >
                 {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Verification Email'}
               </button>
               <button
                 type="button"
                 onClick={handleBackToRegister}
-                className="w-full py-2 px-4 bg-white/5 hover:bg-white/15 text-white/70 hover:text-white font-semibold rounded-xl transition-all text-xs backdrop-blur-sm border border-white/5"
+                className="w-full py-2 px-4 bg-[var(--c-element)] hover:bg-[var(--c-element)] text-[var(--c-text-2)] hover:text-[var(--c-text)] font-semibold rounded-xl transition-all text-xs backdrop-blur-sm border border-[var(--c-border)]"
               >
                 Back to Registration
               </button>
@@ -200,42 +200,42 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
 
   // Login/Registration form view
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[var(--c-bg)] flex items-center justify-center relative overflow-hidden font-sans">
       {/* Neon glow - bottom-left golden/orange */}
       <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.25) 0%, rgba(234,88,12,0.10) 50%, transparent 70%)' }} />
       {/* Neon glow - right pink/purple */}
       <div className="absolute -top-20 -right-20 w-[450px] h-[450px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(217,70,239,0.25) 0%, rgba(147,51,234,0.10) 50%, transparent 70%)' }} />
       {/* Circular glass card */}
-      <div className="w-[500px] h-[500px] rounded-full bg-white/[0.06] backdrop-blur-2xl border border-white/[0.12] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
+      <div className="w-[500px] h-[500px] rounded-full bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
         <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
         <div className="w-full max-w-[340px] space-y-3">
           {/* Logo & Title */}
           <div className="flex items-center gap-3 justify-center mb-1">
-            <div className="p-2.5 bg-white/10 rounded-xl">
-              <BlocksIcon className="text-white" size={26} />
+            <div className="p-2.5 bg-[var(--c-element)] rounded-xl">
+              <BlocksIcon className="text-[var(--c-text)]" size={26} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">FinAudit Finance</h1>
-              <p className="text-[11px] text-white/50">Enterprise Finance & Risk Management</p>
+              <h1 className="text-xl font-bold text-[var(--c-text)]">FinAudit Finance</h1>
+              <p className="text-[11px] text-[var(--c-text-3)]">Enterprise Finance & Risk Management</p>
             </div>
           </div>
           {/* Tab buttons */}
-          <div className="flex bg-white/10 p-1 rounded-xl backdrop-blur-sm border border-white/10">
+          <div className="flex bg-[var(--c-element)] p-1 rounded-xl backdrop-blur-sm border border-[var(--c-border)]">
             <button
               onClick={() => { setIsLogin(true); setError(''); }}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${isLogin ? 'bg-white/20 text-white shadow-sm' : 'text-white/50 hover:text-white/80'}`}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${isLogin ? 'bg-[var(--c-element-hover)] text-[var(--c-text)] shadow-sm' : 'text-[var(--c-text-3)] hover:text-[var(--c-text)]'}`}
             >
               Sign In
             </button>
             <button
               onClick={() => { setIsLogin(false); setError(''); }}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${!isLogin ? 'bg-white/20 text-white shadow-sm' : 'text-white/50 hover:text-white/80'}`}
+              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${!isLogin ? 'bg-[var(--c-element-hover)] text-[var(--c-text)] shadow-sm' : 'text-[var(--c-text-3)] hover:text-[var(--c-text)]'}`}
             >
               Create Account
             </button>
           </div>
           {error && (
-            <div className="p-2.5 bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-medium rounded-xl text-center">
+            <div className="p-2.5 bg-[var(--c-danger-bg)] border border-[var(--c-danger-border)] text-[var(--c-danger)] text-xs font-medium rounded-xl text-center">
               {error}
             </div>
           )}
@@ -243,84 +243,84 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
             {!isLogin && (
               <>
                 <div>
-                  <label className="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1">Full Name</label>
+                  <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Full Name</label>
                   <div className="relative">
                     <input
                       type="text"
-                      className="w-full px-4 py-2.5 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl focus:ring-2 focus:ring-white/30 outline-none transition-all font-medium text-sm pr-10"
-                      placeholder="Jane Doe"
+                      className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
+                      placeholder="FULL NAME"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                     />
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <UserIcon size={15} className="text-white/60" />
+                      <UserIcon size={15} className="text-[var(--c-text-2)]" />
                     </div>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1">Company Name (ICE)</label>
+                  <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Company Name (ICE)</label>
                   <div className="relative">
                     <input
                       type="text"
-                      className="w-full px-4 py-2.5 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl focus:ring-2 focus:ring-white/30 outline-none transition-all font-medium text-sm pr-10"
-                      placeholder="Acme Corp - 123456789"
+                      className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
+                      placeholder="ICE for company registration"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                     />
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <UserCogIcon size={15} className="text-white/60" />
+                      <UserCogIcon size={15} className="text-[var(--c-text-2)]" />
                     </div>
                   </div>
                 </div>
               </>
             )}
             <div>
-              <label className="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1">Email Address</label>
+              <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Email Address</label>
               <div className="relative">
                 <input
                   type="email"
-                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl focus:ring-2 focus:ring-white/30 outline-none transition-all font-medium text-sm pr-10"
+                  className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
                   placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <MailIcon size={15} className="text-white/60" />
+                  <MailIcon size={15} className="text-[var(--c-text-2)]" />
                 </div>
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-white/60 uppercase tracking-wider mb-1">Password</label>
+              <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Password</label>
               <div className="relative">
                 <input
                   type="password"
-                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 text-white placeholder-white/40 rounded-xl focus:ring-2 focus:ring-white/30 outline-none transition-all font-medium text-sm pr-10"
+                  className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
                 <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <LockIcon size={15} className="text-white/60" />
+                  <LockIcon size={15} className="text-[var(--c-text-2)]" />
                 </div>
               </div>
             </div>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-white/15 hover:bg-white/25 text-white font-bold tracking-wider py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-white/10"
+              className="w-full bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] font-bold tracking-wider py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-[var(--c-border)]"
             >
               {isSubmitting ? 'Please wait...' : isLogin ? 'LOGIN' : 'REGISTER'} <ChevronRightIcon size={14} />
             </button>
           </form>
           {/* Footer links */}
           <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors cursor-pointer text-xs">
+            <label className="flex items-center gap-1.5 text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors cursor-pointer text-xs">
               <input type="checkbox" className="accent-white/50 rounded" />
               Remember me
             </label>
-            <button type="button" onClick={(e) => e.preventDefault()} className="text-white/70 hover:text-white transition-colors text-xs">
+            <button type="button" onClick={(e) => e.preventDefault()} className="text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors text-xs">
               Forgot password?
             </button>
           </div>

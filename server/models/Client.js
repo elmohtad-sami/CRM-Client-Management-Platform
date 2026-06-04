@@ -72,6 +72,7 @@ const clientSchema = new mongoose.Schema(
     phone: { type: String, default: '' },
     address: { type: String, default: '' },
     industry: { type: String, default: '' },
+    montant: { type: String, default: '' },
     registrationDate: { type: String, default: '' },
     assignedManager: { type: String, default: '' },
     totalRevenue: { type: Number, default: 0 },
