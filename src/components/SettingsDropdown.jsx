@@ -31,7 +31,7 @@ export default function SettingsDropdown({ user, onLogout, changeView }) {
 
       <MenuItems
         transition
-        className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl bg-[var(--c-overlay)] backdrop-blur-2xl p-1 shadow-lg border border-[var(--c-border-md)] transition duration-100 ease-out focus:outline-none data-closed:scale-95 data-closed:opacity-0"
+        className="absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-xl bg-[var(--c-bg)] backdrop-blur-2xl shadow-2xl p-1  border border-[var(--c-border-md)] transition duration-100 ease-out focus:outline-none data-closed:scale-95 data-closed:opacity-0"
       >
         <div className="px-4 py-3 border-b border-[var(--c-border)]">
           <div className="flex items-center gap-3">

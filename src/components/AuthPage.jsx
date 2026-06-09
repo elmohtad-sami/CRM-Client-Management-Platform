@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BlocksIcon, MailIcon, LockIcon, UserIcon, UserCogIcon, ChevronRightIcon, CircleCheckIcon, BellIcon } from '@animateicons/react/lucide';
+import { BlocksIcon, MailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, UserCogIcon, ChevronRightIcon, CircleCheckIcon, BellIcon } from '@animateicons/react/lucide';
 import { authApi } from '../api/auth';
 
 export default function AuthPage({ onLogin, initialMode = 'login' }) {
@@ -11,6 +11,14 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
   const [verificationCode, setVerificationCode] = useState('');
   const [verificationMessage, setVerificationMessage] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+  const [resetCodeSent, setResetCodeSent] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetCode, setResetCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   
   // Form states
   const [fullName, setFullName] = useState('');
@@ -122,14 +130,85 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
     setError('');
   };
 
+  const handleForgotPassword = () => {
+    setForgotPasswordMode(true);
+    setResetCodeSent(false);
+    setResetEmail('');
+    setResetCode('');
+    setNewPassword('');
+    setResetSuccess(false);
+    setError('');
+  };
+
+  const handleBackToLogin = () => {
+    setForgotPasswordMode(false);
+    setResetCodeSent(false);
+    setResetEmail('');
+    setResetCode('');
+    setNewPassword('');
+    setResetSuccess(false);
+    setError('');
+  };
+
+  const handleSendResetCode = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!resetEmail.trim()) {
+      setError('Please enter your email address.');
+      return;
+    }
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      await authApi.forgotPassword(resetEmail);
+      setResetCodeSent(true);
+      setVerificationMessage('If that email is registered, a reset code has been sent.');
+    } catch (err) {
+      setError(err.message || 'Failed to send reset code.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!resetCode.trim()) {
+      setError('Please enter the reset code.');
+      return;
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      setError('New password must be at least 6 characters.');
+      return;
+    }
+
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      await authApi.resetPassword(resetCode, newPassword);
+      setResetSuccess(true);
+      setVerificationMessage('Password has been reset successfully! You can now login.');
+    } catch (err) {
+      setError(err.message || 'Invalid or expired reset code.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   // Verification form view
   if (awaitingVerification) {
     return (
       <div className="min-h-screen bg-[var(--c-bg)] flex items-center justify-center relative overflow-hidden font-sans">
-        <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.25) 0%, rgba(234,88,12,0.10) 50%, transparent 70%)' }} />
-        <div className="absolute -top-20 -right-20 w-[450px] h-[450px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(217,70,239,0.25) 0%, rgba(147,51,234,0.10) 50%, transparent 70%)' }} />
-        <div className="w-[500px] h-[500px] rounded-full bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
+        <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px]  blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.25) 0%, rgba(234,88,12,0.10) 50%, transparent 70%)' }} />
+        <div className="absolute -top-20 -right-20 w-[450px] h-[450px]  blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(217,70,239,0.25) 0%, rgba(147,51,234,0.10) 50%, transparent 70%)' }} />
+        <div className="w-[500px] h-[500px]  bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
+          <div className="absolute inset-0  bg-gradient-to-br from-amber-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
           <div className="w-full max-w-[340px]">
             <div className="flex items-center gap-3 mb-5 justify-center">
               <div className="p-2.5 bg-[var(--c-element)] rounded-xl">
@@ -198,6 +277,129 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
     );
   }
 
+  // Forgot Password view
+  if (forgotPasswordMode) {
+    return (
+      <div className="min-h-screen bg-[var(--c-bg)] flex items-center justify-center relative overflow-hidden font-sans">
+        <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px]  blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.25) 0%, rgba(234,88,12,0.10) 50%, transparent 70%)' }} />
+        <div className="absolute -top-20 -right-20 w-[450px] h-[450px]  blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(217,70,239,0.25) 0%, rgba(147,51,234,0.10) 50%, transparent 70%)' }} />
+        <div className="w-[500px] h-[500px]  bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
+          <div className="absolute inset-0  bg-gradient-to-br from-amber-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
+          <div className="w-full max-w-[340px]">
+            <div className="flex items-center gap-3 mb-5 justify-center">
+              <div className="p-2.5 bg-[var(--c-element)] rounded-xl">
+                <LockIcon className="text-[var(--c-text)]" size={26} />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-[var(--c-text)]">Reset Password</h1>
+                <p className="text-xs text-[var(--c-text-3)]">{resetSuccess ? 'Success' : 'Secure your account'}</p>
+              </div>
+            </div>
+            {error && (
+              <div className="mb-4 p-2.5 bg-[var(--c-danger-bg)] border border-[var(--c-danger-border)] text-[var(--c-danger)] text-xs font-medium rounded-xl text-center">
+                {error}
+              </div>
+            )}
+            {verificationMessage && (
+              <div className="mb-4 p-2.5 bg-[var(--c-info-bg)] border border-[var(--c-info-border)] text-[var(--c-info)] text-xs font-medium rounded-xl flex items-center justify-center gap-2">
+                <BellIcon size={14} className="shrink-0" />
+                <span>{verificationMessage}</span>
+              </div>
+            )}
+            {resetSuccess ? (
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={handleBackToLogin}
+                  className="w-full bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] font-bold tracking-wide py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs backdrop-blur-sm border border-[var(--c-border)]"
+                >
+                  Back to Sign In <ChevronRightIcon size={14} />
+                </button>
+              </div>
+            ) : !resetCodeSent ? (
+              <form onSubmit={handleSendResetCode} className="space-y-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1.5">Email Address</label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
+                      placeholder="name@company.com"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      required
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <MailIcon size={15} className="text-[var(--c-text-2)]" />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-[var(--c-placeholder)] mt-1.5">Enter your email to receive a reset code.</p>
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] font-bold tracking-wide py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-[var(--c-border)]"
+                >
+                  {isSubmitting ? 'Sending...' : 'Send Reset Code'} <ChevronRightIcon size={14} />
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleResetPassword} className="space-y-3">
+                <div>
+                  <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1.5 text-center">Reset Code</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-center tracking-widest text-sm"
+                      placeholder="Enter the code from your email"
+                      value={resetCode}
+                      onChange={(e) => setResetCode(e.target.value)}
+                      maxLength="64"
+                    />
+                  </div>
+                  <p className="text-[11px] text-[var(--c-placeholder)] mt-1.5 text-center">Check your email inbox or spam folder.</p>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1.5">New Password</label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
+                      placeholder="••••••••"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      required
+                      minLength={6}
+                    />
+                    <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors">
+                      {showNewPassword ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
+                    </button>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] font-bold tracking-wide py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-[var(--c-border)]"
+                >
+                  {isSubmitting ? 'Resetting...' : 'Reset Password'} <ChevronRightIcon size={14} />
+                </button>
+              </form>
+            )}
+            <div className="mt-5 border-t border-[var(--c-border)] pt-4">
+              <button
+                type="button"
+                onClick={handleBackToLogin}
+                className="w-full py-2 px-4 bg-[var(--c-element)] hover:bg-[var(--c-element)] text-[var(--c-text-2)] hover:text-[var(--c-text)] font-semibold rounded-xl transition-all text-xs backdrop-blur-sm border border-[var(--c-border)]"
+              >
+                Back to Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Login/Registration form view
   return (
     <div className="min-h-screen bg-[var(--c-bg)] flex items-center justify-center relative overflow-hidden font-sans">
@@ -206,8 +408,8 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
       {/* Neon glow - right pink/purple */}
       <div className="absolute -top-20 -right-20 w-[450px] h-[450px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(217,70,239,0.25) 0%, rgba(147,51,234,0.10) 50%, transparent 70%)' }} />
       {/* Circular glass card */}
-      <div className="w-[500px] h-[500px] rounded-full bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
+      <div className="w-[500px] h-[500px] rounded-2xl bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
         <div className="w-full max-w-[340px] space-y-3">
           {/* Logo & Title */}
           <div className="flex items-center gap-3 justify-center mb-1">
@@ -294,16 +496,16 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
               <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Password</label>
               <div className="relative">
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <LockIcon size={15} className="text-[var(--c-text-2)]" />
-                </div>
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors">
+                  {showPassword ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
+                </button>
               </div>
             </div>
             <button
@@ -320,7 +522,7 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
               <input type="checkbox" className="accent-white/50 rounded" />
               Remember me
             </label>
-            <button type="button" onClick={(e) => e.preventDefault()} className="text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors text-xs">
+            <button type="button" onClick={handleForgotPassword} className="text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors text-xs">
               Forgot password?
             </button>
           </div>

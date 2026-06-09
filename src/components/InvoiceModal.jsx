@@ -16,7 +16,7 @@ export default function InvoiceModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[var(--c-overlay)] backdrop-blur-xl" onClick={() => setIsModalOpen(false)}></div>
-      <div className="relative bg-[var(--c-overlay)] backdrop-blur-2xl rounded-2xl shadow-2xl w-full max-w-lg p-8 animate-in zoom-in-95 duration-200 border border-[var(--c-border-md)]">
+      <div className="relative bg-[var(--c-bg)] backdrop-blur-2xl rounded-2xl shadow-2xl w-full max-w-lg p-8 animate-in zoom-in-95 duration-200 border border-[var(--c-border-md)]">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-[var(--c-text)]">{editingId ? 'Edit Record' : 'New Invoice'}</h3>
           <button onClick={() => setIsModalOpen(false)} className="text-[var(--c-placeholder)] hover:text-[var(--c-text)] bg-[var(--c-element)] hover:bg-[var(--c-element-hover)] p-1.5 rounded-full transition-colors"><XIcon size={18} /></button>

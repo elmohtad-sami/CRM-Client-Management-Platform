@@ -49,6 +49,7 @@ export default function App() {
     }
     return [];
   });
+  const [editingRiskAnomaly, setEditingRiskAnomaly] = useState(null);
   const [devisList, setDevisList] = useState(() => {
     if (user && user.email) {
       const saved = localStorage.getItem(`finance_crm_devis_${user.email}`);
@@ -949,18 +950,30 @@ export default function App() {
                 ? 'Settings'
                 : isClientManagementPage
                   ? 'Client Management'
-                  : (currentView !== 'dashboard'
-                      ? `Clients List - ${currentView === 'fidèle' ? 'Fidèles' : currentView === 'insolvable' ? 'Insolvables' : 'Solvables'}`
-                      : (selectedClientName ? `${selectedClientName} - Profile` : 'Enterprise Dashboard'))}
+                  : currentView === 'risks'
+                    ? 'Risk Anomalies'
+                    : currentView === 'devis'
+                      ? 'Devis Manager'
+                      : currentView === 'client-details'
+                        ? 'Client Details'
+                        : (currentView !== 'dashboard'
+                            ? `Clients List - ${currentView === 'fidèle' ? 'Fidèles' : currentView === 'insolvable' ? 'Insolvables' : 'Solvables'}`
+                            : (selectedClientName ? `${selectedClientName} - Profile` : 'Enterprise Dashboard'))}
             </h2>
               <p className="text-sm text-[var(--c-text-3)] font-medium tracking-wide">
                 {isSettingsPage
                   ? 'Manage your account details, security, and session settings.'
                   : isClientManagementPage
                     ? 'Create, edit, and remove client records.'
-                  : (currentView !== 'dashboard'
-                    ? `Filtered by status: ${currentView === 'fidèle' ? 'Fidèle' : currentView === 'insolvable' ? 'Insolvable' : 'Solvable'}`
-                    : (selectedClientName ? 'Dedicated client audit and finance tracking' : (user?.companyName ? `Overview for ${user.companyName}` : 'Enterprise firm overview')))}
+                    : currentView === 'risks'
+                      ? 'Regulatory anomalies and flagged invoices.'
+                      : currentView === 'devis'
+                        ? 'Create and manage client devis (estimates).'
+                        : currentView === 'client-details'
+                          ? 'Dedicated client audit and finance tracking'
+                          : (currentView !== 'dashboard'
+                              ? `Filtered by status: ${currentView === 'fidèle' ? 'Fidèle' : currentView === 'insolvable' ? 'Insolvable' : 'Solvable'}`
+                              : (selectedClientName ? 'Dedicated client audit and finance tracking' : (user?.companyName ? `Overview for ${user.companyName}` : 'Enterprise firm overview')))}
               </p>
             </div>
           <div className="flex gap-2">
@@ -1091,8 +1104,19 @@ export default function App() {
             />
           ) : currentView === 'risks' ? (
             <>
-              <AddRiskForm onAddRisk={(newRisk) => setRiskAnomalies([newRisk, ...riskAnomalies])} />
-              <RiskAnomaliesList anomalies={riskAnomalies} onDelete={(id) => setRiskAnomalies(riskAnomalies.filter(r => r.id !== id))} />
+              <AddRiskForm
+                editAnomaly={editingRiskAnomaly}
+                onAddRisk={(newRisk) => setRiskAnomalies([newRisk, ...riskAnomalies])}
+                onEditRisk={(updated) => {
+                  setRiskAnomalies((prev) => prev.map((r) => r.id === updated.id ? updated : r));
+                  setEditingRiskAnomaly(null);
+                }}
+              />
+              <RiskAnomaliesList
+                anomalies={riskAnomalies}
+                onDelete={(id) => setRiskAnomalies(riskAnomalies.filter(r => r.id !== id))}
+                onEdit={(anomaly) => setEditingRiskAnomaly(anomaly)}
+              />
             </>
           ) : currentView === 'devis' ? (
             <DevisManager devisList={devisList} onAddDevis={async (d) => {

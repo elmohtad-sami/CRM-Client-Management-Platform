@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
-const { sendVerificationEmail } = require('../utils/emailService');
+const { sendVerificationEmail, sendPasswordResetEmail, generateVerificationCode } = require('../utils/emailService');
 
 const buildUserResponse = (user) => ({
   id: user._id,
@@ -49,8 +49,9 @@ exports.register = asyncHandler(async (req, res, next) => {
 
   const passwordHash = await bcrypt.hash(password, 12);
   
-  // Generate verification token
+  // Generate verification token and 6-digit code
   const verificationToken = crypto.randomBytes(32).toString('hex');
+  const verificationCode = generateVerificationCode();
   const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
   const user = await User.create({
@@ -61,11 +62,12 @@ exports.register = asyncHandler(async (req, res, next) => {
     role: 'Finance',
     isVerified: false,
     verificationToken,
+    verificationCode,
     verificationExpires
   });
 
   try {
-    await sendVerificationEmail(normalizedEmail, user.fullName, verificationToken);
+    await sendVerificationEmail(normalizedEmail, user.fullName, verificationToken, verificationCode);
   } catch (emailError) {
     console.error('Registration: Email send failed:', emailError.message);
   }
@@ -175,20 +177,24 @@ exports.verifyEmail = asyncHandler(async (req, res, next) => {
   const { token } = req.body;
 
   if (!token) {
-    return res.status(400).json({ message: 'Verification token is required' });
+    return res.status(400).json({ message: 'Verification token or code is required' });
   }
 
   const user = await User.findOne({
-    verificationToken: token,
+    $or: [
+      { verificationToken: token },
+      { verificationCode: token }
+    ],
     verificationExpires: { $gt: Date.now() }
   });
 
   if (!user) {
-    return res.status(400).json({ message: 'Invalid or expired verification token' });
+    return res.status(400).json({ message: 'Invalid or expired verification token or code' });
   }
 
   user.isVerified = true;
   user.verificationToken = null;
+  user.verificationCode = null;
   user.verificationExpires = null;
   await user.save();
 
@@ -218,18 +224,84 @@ exports.resendVerificationEmail = asyncHandler(async (req, res, next) => {
     return res.status(400).json({ message: 'Email is already verified' });
   }
 
-  // Generate new verification token
+  // Generate new verification token and code
   const verificationToken = crypto.randomBytes(32).toString('hex');
+  const verificationCode = generateVerificationCode();
   const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
   user.verificationToken = verificationToken;
+  user.verificationCode = verificationCode;
   user.verificationExpires = verificationExpires;
   await user.save();
 
   try {
-    await sendVerificationEmail(normalizedEmail, user.fullName, verificationToken);
+    await sendVerificationEmail(normalizedEmail, user.fullName, verificationToken, verificationCode);
     return res.json({ message: 'Verification email sent successfully' });
   } catch (err) {
     return res.status(500).json({ message: 'Failed to send verification email' });
   }
+});
+
+exports.forgotPassword = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Email is required' });
+  }
+
+  const normalizedEmail = String(email).trim().toLowerCase();
+  const user = await User.findOne({ email: normalizedEmail });
+
+  // Always return success to prevent email enumeration
+  if (!user) {
+    return res.json({ message: 'If that email is registered, a reset code has been sent.' });
+  }
+
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetCode = generateVerificationCode();
+  const resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+  user.resetPasswordToken = resetToken;
+  user.resetPasswordCode = resetCode;
+  user.resetPasswordExpires = resetPasswordExpires;
+  await user.save();
+
+  try {
+    await sendPasswordResetEmail(normalizedEmail, user.fullName, resetToken, resetCode);
+    return res.json({ message: 'If that email is registered, a reset code has been sent.' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to send reset email. Please try again.' });
+  }
+});
+
+exports.resetPassword = asyncHandler(async (req, res, next) => {
+  const { code, newPassword } = req.body;
+
+  if (!code || !newPassword) {
+    return res.status(400).json({ message: 'Reset code and new password are required' });
+  }
+
+  if (String(newPassword).length < 6) {
+    return res.status(400).json({ message: 'New password must be at least 6 characters' });
+  }
+
+  const user = await User.findOne({
+    $or: [
+      { resetPasswordToken: code },
+      { resetPasswordCode: code }
+    ],
+    resetPasswordExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    return res.status(400).json({ message: 'Invalid or expired reset code' });
+  }
+
+  user.passwordHash = await bcrypt.hash(newPassword, 12);
+  user.resetPasswordToken = null;
+  user.resetPasswordCode = null;
+  user.resetPasswordExpires = null;
+  await user.save();
+
+  return res.json({ message: 'Password has been reset successfully. You can now login.' });
 });

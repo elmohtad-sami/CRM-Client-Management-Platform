@@ -14,7 +14,11 @@ const userSchema = new mongoose.Schema(
     profileImage: { type: String, default: '' },
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String, default: null },
-    verificationExpires: { type: Date, default: null }
+    verificationCode: { type: String, default: null },
+    verificationExpires: { type: Date, default: null },
+    resetPasswordToken: { type: String, default: null },
+    resetPasswordCode: { type: String, default: null },
+    resetPasswordExpires: { type: Date, default: null }
   },
   { timestamps: true }
 );

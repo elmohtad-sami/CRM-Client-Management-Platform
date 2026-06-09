@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { DownloadIcon, LoaderCircleIcon } from '@animateicons/react/lucide';
+import { DownloadIcon, LoaderCircleIcon, LayoutGridIcon } from '@animateicons/react/lucide';
 import { jsPDF } from 'jspdf';
 import { applyPlugin } from 'jspdf-autotable';
 applyPlugin(jsPDF);
+import * as XLSX from 'xlsx';
 import { useClients } from '../context/ClientsContext';
 
 const formatCurrency = (value) => `${Number(value || 0).toFixed(2)} MAD`;
@@ -32,6 +33,7 @@ export default function ReportDownloadButton({ stats, monthlyRevenueData }) {
     Array.isArray(client.invoices) ? client.invoices : []
   );
   const [isPreparing, setIsPreparing] = useState(false);
+  const [isExcelPreparing, setIsExcelPreparing] = useState(false);
 
   const normalizeClientStatus = (value) => {
     const normalized = String(value || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -245,16 +247,123 @@ export default function ReportDownloadButton({ stats, monthlyRevenueData }) {
     }
   };
 
+  const generateExcel = async () => {
+    setIsExcelPreparing(true);
+
+    try {
+      const sortedInvoices = [...(invoices || [])].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+      const workbook = XLSX.utils.book_new();
+
+      // Summary sheet
+      const clientStatuses = clients.map((client) => normalizeClientStatus(client.status));
+      const solvableClients = clientStatuses.filter((status) => status === 'Solvable').length;
+      const totalAssessed = clients.length;
+      const totalRevenue = stats?.totalRevenue ?? invoices.reduce((sum, inv) => sum + Number(inv.totalTTC ?? inv.amountHT ?? inv.amount ?? 0), 0);
+      const solvabilityRate = stats?.solvabilityRate ?? (totalAssessed > 0 ? Math.round((solvableClients / totalAssessed) * 100) : 0);
+      const regulatoryRisks = stats?.totalRisks ?? clients.filter((client) => Number(client.riskScore || 0) > 70).length;
+
+      const summaryData = [
+        ['Metric', 'Value'],
+        ['Total Revenue', formatCurrency(totalRevenue)],
+        ['Solvability Rate', `${solvabilityRate}%`],
+        ['Regulatory Risks', String(regulatoryRisks)],
+        ['Total Clients', String(totalAssessed)],
+        ['Report Date', new Date().toLocaleDateString('fr-FR')],
+      ];
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
+
+      // Monthly Revenue sheet
+      const chartData = monthlyRevenueData?.length ? monthlyRevenueData : [];
+      if (chartData.length > 0) {
+        const revenueData = [['Month', 'Revenue (MAD)'], ...chartData.map((d) => [d.month, Number(d.revenue || 0)])];
+        const revenueSheet = XLSX.utils.aoa_to_sheet(revenueData);
+        XLSX.utils.book_append_sheet(workbook, revenueSheet, 'Monthly Revenue');
+      }
+
+      // Invoices sheet
+      const invoiceRows = sortedInvoices.map((inv) => [
+        inv.clientName || '-',
+        formatDate(inv.date),
+        Number(inv.totalTTC ?? inv.amountHT ?? inv.amount ?? 0),
+        inv.method || inv.paymentMethod || '-',
+        inv.status || inv.paymentStatus || '-',
+        inv.flags?.length ? inv.flags.join(', ') : '',
+      ]);
+      const invoiceData = [
+        ['Client', 'Date', 'Total TTC (MAD)', 'Payment Method', 'Status', 'Risk Flags'],
+        ...invoiceRows,
+      ];
+      const invoiceSheet = XLSX.utils.aoa_to_sheet(invoiceData);
+
+      // Set column widths
+      invoiceSheet['!cols'] = [
+        { wch: 25 },
+        { wch: 14 },
+        { wch: 16 },
+        { wch: 18 },
+        { wch: 14 },
+        { wch: 20 },
+      ];
+
+      XLSX.utils.book_append_sheet(workbook, invoiceSheet, 'Invoices');
+
+      // Clients sheet
+      const clientRows = clients.map((client) => [
+        client.name || '-',
+        normalizeClientStatus(client.status),
+        client.email || '-',
+        client.phone || '-',
+        formatCurrency(client.totalTTC ?? client.revenue ?? 0),
+        client.riskScore ?? '-',
+      ]);
+      const clientData = [
+        ['Name', 'Status', 'Email', 'Phone', 'Revenue', 'Risk Score'],
+        ...clientRows,
+      ];
+      const clientSheet = XLSX.utils.aoa_to_sheet(clientData);
+      clientSheet['!cols'] = [
+        { wch: 25 },
+        { wch: 14 },
+        { wch: 30 },
+        { wch: 16 },
+        { wch: 16 },
+        { wch: 12 },
+      ];
+      XLSX.utils.book_append_sheet(workbook, clientSheet, 'Clients');
+
+      XLSX.writeFile(workbook, 'Enterprise-Dashboard-Report.xlsx');
+    } catch (err) {
+      console.error('Excel generation failed:', err);
+      alert(`Excel generation failed: ${err.message || 'Unknown error'}`);
+    } finally {
+      setIsExcelPreparing(false);
+    }
+  };
+
   return (
-    <button
-      type="button"
-      onClick={generatePDF}
-      disabled={isPreparing}
-      className="no-print inline-flex items-center gap-2 rounded-xl bg-[var(--c-danger-bg)] px-4 py-2.5 text-xs uppercase tracking-wider font-bold text-[var(--c-danger)] shadow transition-all hover:bg-[var(--c-danger-hover)] disabled:cursor-not-allowed disabled:opacity-80 backdrop-blur-sm border border-[var(--c-danger-border)] focus:outline-none focus:ring-2 focus:ring-[var(--c-danger-border)] focus:ring-offset-2"
-      title="Download dashboard as PDF"
-    >
-      {isPreparing ? <LoaderCircleIcon size={14} className="animate-spin" /> : <DownloadIcon size={14} />}
-      <span>{isPreparing ? 'Generating PDF...' : 'Download PDF'}</span>
-    </button>
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={generateExcel}
+        disabled={isExcelPreparing}
+        className="no-print inline-flex items-center gap-2 rounded-xl bg-[var(--c-positive-bg)] px-4 py-2.5 text-xs uppercase tracking-wider font-bold text-[var(--c-positive)] shadow transition-all hover:bg-[var(--c-positive-hover)] disabled:cursor-not-allowed disabled:opacity-80 backdrop-blur-sm border border-[var(--c-positive-border)] focus:outline-none focus:ring-2 focus:ring-[var(--c-positive-border)] focus:ring-offset-2"
+        title="Download dashboard as Excel"
+      >
+        {isExcelPreparing ? <LoaderCircleIcon size={14} className="animate-spin" /> : <LayoutGridIcon size={14} />}
+        <span>{isExcelPreparing ? 'Generating Excel...' : 'Download Excel'}</span>
+      </button>
+      <button
+        type="button"
+        onClick={generatePDF}
+        disabled={isPreparing}
+        className="no-print inline-flex items-center gap-2 rounded-xl bg-[var(--c-danger-bg)] px-4 py-2.5 text-xs uppercase tracking-wider font-bold text-[var(--c-danger)] shadow transition-all hover:bg-[var(--c-danger-hover)] disabled:cursor-not-allowed disabled:opacity-80 backdrop-blur-sm border border-[var(--c-danger-border)] focus:outline-none focus:ring-2 focus:ring-[var(--c-danger-border)] focus:ring-offset-2"
+        title="Download dashboard as PDF"
+      >
+        {isPreparing ? <LoaderCircleIcon size={14} className="animate-spin" /> : <DownloadIcon size={14} />}
+        <span>{isPreparing ? 'Generating PDF...' : 'Download PDF'}</span>
+      </button>
+    </div>
   );
 }

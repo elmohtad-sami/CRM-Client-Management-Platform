@@ -1,24 +1,42 @@
-import React, { useState } from 'react';
-import { ShieldXIcon, TriangleAlertIcon, CircleCheckIcon } from '@animateicons/react/lucide';
+import React, { useState, useEffect } from 'react';
+import { ShieldXIcon } from '@animateicons/react/lucide';
 
-export default function AddRiskForm({ onAddRisk }) {
+export default function AddRiskForm({ onAddRisk, onEditRisk, editAnomaly }) {
   const [description, setDescription] = useState('');
   const [level, setLevel] = useState('High');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isEditing = Boolean(editAnomaly);
+
+  useEffect(() => {
+    if (editAnomaly) {
+      setDescription(editAnomaly.description || '');
+      setLevel(editAnomaly.level || 'High');
+    } else {
+      setDescription('');
+      setLevel('High');
+    }
+  }, [editAnomaly]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate backend request or save to local state
+
     setTimeout(() => {
-      onAddRisk({
-        id: Date.now().toString(),
-        description,
-        level,
-        clientId: null,
-        createdAt: new Date().toISOString()
-      });
+      if (isEditing && onEditRisk) {
+        onEditRisk({
+          ...editAnomaly,
+          description,
+          level
+        });
+      } else {
+        onAddRisk({
+          id: Date.now().toString(),
+          description,
+          level,
+          clientId: null,
+          createdAt: new Date().toISOString()
+        });
+      }
       setDescription('');
       setLevel('High');
       setIsSubmitting(false);
@@ -32,8 +50,8 @@ export default function AddRiskForm({ onAddRisk }) {
           <ShieldXIcon size={18} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-[var(--c-text)]">Report New Risk Anomaly</h3>
-          <p className="text-xs text-[var(--c-text-3)]">Log a new operational or financial risk to the database.</p>
+          <h3 className="text-lg font-bold text-[var(--c-text)]">{isEditing ? 'Edit Risk Anomaly' : 'Report New Risk Anomaly'}</h3>
+          <p className="text-xs text-[var(--c-text-3)]">{isEditing ? 'Update the anomaly details below.' : 'Log a new operational or financial risk to the database.'}</p>
         </div>
       </div>
 
@@ -69,13 +87,24 @@ export default function AddRiskForm({ onAddRisk }) {
           </div>
         </div>
 
-        <button 
-          type="submit" 
-          disabled={isSubmitting}
-          className={`w-full text-[var(--c-text)] text-xs uppercase tracking-wider font-bold py-2.5 rounded-xl mt-6 transition-all transform hover:-translate-y-0.5 shadow-lg flex items-center justify-center gap-2 ${isSubmitting ? 'bg-[var(--c-element)] cursor-not-allowed' : 'bg-[var(--c-danger-bg)] hover:bg-[var(--c-danger-hover)] text-[var(--c-danger)] border border-[var(--c-danger-border)]'}`}
-        >
-          {isSubmitting ? 'Saving...' : 'Add Anomaly to Database'}
-        </button>
+        <div className="flex gap-3">
+          <button 
+            type="submit" 
+            disabled={isSubmitting}
+            className={`flex-1 text-[var(--c-text)] text-xs uppercase tracking-wider font-bold py-2.5 rounded-xl mt-6 transition-all transform hover:-translate-y-0.5 shadow-lg flex items-center justify-center gap-2 ${isSubmitting ? 'bg-[var(--c-element)] cursor-not-allowed' : isEditing ? 'bg-[var(--c-accent-bg)] hover:bg-[var(--c-accent-hover)] text-[var(--c-accent)] border border-[var(--c-accent-border)]' : 'bg-[var(--c-danger-bg)] hover:bg-[var(--c-danger-hover)] text-[var(--c-danger)] border border-[var(--c-danger-border)]'}`}
+          >
+            {isSubmitting ? 'Saving...' : isEditing ? 'Update Anomaly' : 'Add Anomaly to Database'}
+          </button>
+          {isEditing && (
+            <button 
+              type="button"
+              onClick={() => onEditRisk(null)}
+              className="px-6 text-xs uppercase tracking-wider font-bold py-2.5 rounded-xl mt-6 transition-all bg-[var(--c-element)] hover:bg-[var(--c-element-hover)] text-[var(--c-text)] border border-[var(--c-border)]"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );

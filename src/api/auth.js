@@ -7,5 +7,7 @@ export const authApi = {
   resendVerificationEmail: (email) => request('/auth/resend-verification', { method: 'POST', body: { email } }),
   updateProfile: (payload, token) => request('/auth/profile', { method: 'PUT', body: payload, token }),
   updatePassword: (payload, token) => request('/auth/password', { method: 'PATCH', body: payload, token }),
-  me: (token) => request('/auth/me', { token })
+  me: (token) => request('/auth/me', { token }),
+  forgotPassword: (email) => request('/auth/forgot-password', { method: 'POST', body: { email } }),
+  resetPassword: (code, newPassword) => request('/auth/reset-password', { method: 'POST', body: { code, newPassword } })
 };

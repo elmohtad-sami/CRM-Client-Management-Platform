@@ -22,11 +22,13 @@ export default function NotificationBellIcon() {
       const paid = invoice.status === 'Paid' || invoice.status === 'Payée' || invoice.paymentStatus === 'Paid';
       const diff = dueDate - now;
 
-      return pending && !paid && diff >= 0 && diff <= WINDOW_MS;
+      return pending && !paid && Math.abs(diff) <= WINDOW_MS;
     })
     .map((invoice) => {
       const dueDate = new Date(invoice.dueDate);
-      const daysLeft = Math.max(1, Math.ceil((dueDate.getTime() - now) / (24 * 60 * 60 * 1000)));
+      const diffMs = dueDate.getTime() - now;
+      const daysLeft = Math.ceil(Math.abs(diffMs) / (24 * 60 * 60 * 1000));
+      const isOverdue = diffMs < 0;
 
       return {
         key: `${invoice.id}-${invoice.status}-${invoice.dueDate}`,
@@ -34,7 +36,9 @@ export default function NotificationBellIcon() {
         invoiceId: invoice.id,
         dueDateValue: dueDate.getTime(),
         dueDateLabel: dueDate.toLocaleDateString(),
-        message: `Invoice due in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`
+        message: isOverdue
+          ? `Invoice overdue by ${daysLeft} day${daysLeft === 1 ? '' : 's'}`
+          : `Invoice due in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`
       };
     })
     .sort((left, right) => left.dueDateValue - right.dueDateValue);
@@ -90,11 +94,11 @@ export default function NotificationBellIcon() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-3 w-96 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-[var(--c-border-md)] bg-[var(--c-overlay)] backdrop-blur-2xl shadow-2xl">
+        <div className="absolute right-0 top-full z-50 mt-3 w-96 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-[var(--c-border-md)] bg-[var(--c-bg)] backdrop-blur-2xl shadow-2xl">
           <div className="flex items-center justify-between border-b border-[var(--c-border)] px-4 py-2.5">
             <div>
               <p className="text-xs font-bold text-[var(--c-text)]">Notifications</p>
-              <p className="text-[11px] text-[var(--c-placeholder)]">Due invoices in the next 48 hours</p>
+              <p className="text-[11px] text-[var(--c-placeholder)]">Invoices due or overdue within 48 hours</p>
             </div>
             {notifications.length > 0 && (
               <button
