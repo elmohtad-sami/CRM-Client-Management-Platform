@@ -411,24 +411,28 @@ export function ClientsProvider({ children }) {
       id: document.id || `${Date.now()}`,
       name: document.name || 'Uploaded document',
       uploadDate: document.uploadDate || new Date().toISOString(),
-      size: document.size || ''
+      size: document.size || '',
+      url: document.url || '',
+      file: document.file || null
     };
 
+    let localDocs;
     setClients((current) => current.map((client) => {
       if (getClientIdValue(client) !== String(clientId)) return client;
       const activity = createActivity('Document uploaded', documentEntry.name);
+      localDocs = [documentEntry, ...(client.documents || [])];
       return {
         ...client,
-        documents: [documentEntry, ...(client.documents || [])],
+        documents: localDocs,
         activities: [activity, ...(client.activities || [])]
       };
     }));
 
     void (async () => {
       try {
-        const updatedClient = await clientsApi.addDocument(clientId, documentEntry, token);
-        replaceClient(updatedClient);
-        void loadClientsFromApi(token);
+        const { url: _url, file: _file, ...apiEntry } = documentEntry;
+        const updatedClient = await clientsApi.addDocument(clientId, apiEntry, token);
+        replaceClient({ ...updatedClient, documents: localDocs });
       } catch (error) {
         console.error('Failed to persist document.', error);
       }

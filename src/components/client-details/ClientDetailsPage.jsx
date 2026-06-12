@@ -131,13 +131,6 @@ export default function ClientDetailsPage({ clientId, onBack, startEditClient, c
           documents={client.documents || []}
           canUpload={canUploadDocuments}
           onUpload={handleUploadDocument}
-          onView={(doc) => {
-            if (doc?.url) {
-              window.open(doc.url, '_blank', 'noopener,noreferrer');
-              return;
-            }
-            alert('No preview available for this document.');
-          }}
         />
       </div>
 

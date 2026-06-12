@@ -1,7 +1,7 @@
 import React from 'react';
 import { UploadIcon, EyeIcon } from '@animateicons/react/lucide';
 
-export default function DocumentsSection({ documents = [], canUpload, onUpload, onView }) {
+export default function DocumentsSection({ documents = [], canUpload, onUpload }) {
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files || []);
     files.forEach((file) => {
@@ -47,28 +47,23 @@ export default function DocumentsSection({ documents = [], canUpload, onUpload, 
               <button
                 type="button"
                 onClick={() => {
-                  if (typeof onView === 'function') {
-                    try { onView(doc); } catch (e) {}
-                  }
+                  const openUrl = (url) => {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  };
 
-                  if (doc.url) {
-                    window.open(doc.url, '_blank', 'noopener,noreferrer');
-                    return;
-                  }
-
-                  if (doc.file) {
-                    try {
-                      const blob = doc.file instanceof Blob ? doc.file : null;
-                      if (blob) {
-                        const url = URL.createObjectURL(blob);
-                        window.open(url, '_blank', 'noopener,noreferrer');
-                        // revoke after a while
-                        setTimeout(() => URL.revokeObjectURL(url), 10000);
-                        return;
-                      }
-                    } catch (e) {
-                      // fallthrough
+                  const url = doc.url || (doc.file instanceof Blob ? URL.createObjectURL(doc.file) : null);
+                  if (url) {
+                    openUrl(url);
+                    if (!doc.url && doc.file) {
+                      setTimeout(() => URL.revokeObjectURL(url), 10000);
                     }
+                    return;
                   }
 
                   alert('No preview available for this document.');
