@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { BlocksIcon, MailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, UserCogIcon, ChevronRightIcon, CircleCheckIcon, BellIcon } from '@animateicons/react/lucide';
+import { BlocksIcon, MailIcon, LockIcon, EyeIcon, EyeOffIcon, UserIcon, UserCogIcon, ChevronRightIcon, CircleCheckIcon, BellIcon, TerminalIcon } from '@animateicons/react/lucide';
 import { authApi } from '../api/auth';
+import LoginTerminal from './LoginTerminal';
 
 export default function AuthPage({ onLogin, initialMode = 'login' }) {
   const [isLogin, setIsLogin] = useState(initialMode !== 'register');
@@ -407,124 +408,145 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
       <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(251,146,60,0.25) 0%, rgba(234,88,12,0.10) 50%, transparent 70%)' }} />
       {/* Neon glow - right pink/purple */}
       <div className="absolute -top-20 -right-20 w-[450px] h-[450px] rounded-full blur-3xl pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(217,70,239,0.25) 0%, rgba(147,51,234,0.10) 50%, transparent 70%)' }} />
-      {/* Circular glass card */}
-      <div className="w-[500px] h-[500px] rounded-2xl bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] shadow-[0_0_80px_rgba(255,255,255,0.05)] flex flex-col items-center justify-center p-10 relative">
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
-        <div className="w-full max-w-[340px] space-y-3">
-          {/* Logo & Title */}
-          <div className="flex items-center gap-3 justify-center mb-1">
-            <div className="p-2.5 bg-[var(--c-element)] rounded-xl">
-              <BlocksIcon className="text-[var(--c-text)]" size={26} />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-[var(--c-text)]">FinAudit Finance</h1>
-              <p className="text-[11px] text-[var(--c-text-3)]">Enterprise Finance & Risk Management</p>
-            </div>
-          </div>
-          {/* Tab buttons */}
-          <div className="flex bg-[var(--c-element)] p-1 rounded-xl backdrop-blur-sm border border-[var(--c-border)]">
-            <button
-              onClick={() => { setIsLogin(true); setError(''); }}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${isLogin ? 'bg-[var(--c-element-hover)] text-[var(--c-text)] shadow-sm' : 'text-[var(--c-text-3)] hover:text-[var(--c-text)]'}`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => { setIsLogin(false); setError(''); }}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${!isLogin ? 'bg-[var(--c-element-hover)] text-[var(--c-text)] shadow-sm' : 'text-[var(--c-text-3)] hover:text-[var(--c-text)]'}`}
-            >
-              Create Account
-            </button>
-          </div>
-          {error && (
-            <div className="p-2.5 bg-[var(--c-danger-bg)] border border-[var(--c-danger-border)] text-[var(--c-danger)] text-xs font-medium rounded-xl text-center">
-              {error}
-            </div>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-2.5">
-            {!isLogin && (
-              <>
-                <div>
-                  <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Full Name</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
-                      placeholder="FULL NAME"
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <UserIcon size={15} className="text-[var(--c-text-2)]" />
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Company Name (ICE)</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
-                      placeholder="ICE for company registration"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                      <UserCogIcon size={15} className="text-[var(--c-text-2)]" />
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-            <div>
-              <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Email Address</label>
-              <div className="relative">
-                <input
-                  type="email"
-                  className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
-                  placeholder="name@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                  <MailIcon size={15} className="text-[var(--c-text-2)]" />
-                </div>
+
+      <div className="flex items-stretch gap-6 w-full max-w-5xl px-4">
+        {/* Terminal - left side */}
+        <div className="hidden lg:flex flex-1 items-center justify-center">
+          <div className="w-full max-w-lg animate-in fade-in slide-in-from-left-8 duration-700">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-black/80 rounded-lg border border-white/10">
+                <TerminalIcon size={18} className="text-white/80" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-[var(--c-text)]">System Initialization</h2>
+                <p className="text-[11px] text-[var(--c-text-3)]">FinAudit Core v3.2.1</p>
               </div>
             </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors">
-                  {showPassword ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
+            <LoginTerminal />
+          </div>
+        </div>
+
+        {/* Form - right side */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-[460px] rounded-2xl bg-[var(--c-surface)] backdrop-blur-2xl border border-[var(--c-border-md)] shadow-[0_0_80px_rgba(255,255,255,0.05)] p-10 relative">
+            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500/5 via-transparent to-fuchsia-500/5 pointer-events-none" />
+            <div className="w-full max-w-[340px] mx-auto space-y-3 relative">
+              {/* Logo & Title */}
+              <div className="flex items-center gap-3 justify-center mb-1">
+                <div className="p-2.5 bg-[var(--c-element)] rounded-xl">
+                  <BlocksIcon className="text-[var(--c-text)]" size={26} />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-[var(--c-text)]">FinAudit Finance</h1>
+                  <p className="text-[11px] text-[var(--c-text-3)]">Enterprise Finance & Risk Management</p>
+                </div>
+              </div>
+              {/* Tab buttons */}
+              <div className="flex bg-[var(--c-element)] p-1 rounded-xl backdrop-blur-sm border border-[var(--c-border)]">
+                <button
+                  onClick={() => { setIsLogin(true); setError(''); }}
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${isLogin ? 'bg-[var(--c-element-hover)] text-[var(--c-text)] shadow-sm' : 'text-[var(--c-text-3)] hover:text-[var(--c-text)]'}`}
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => { setIsLogin(false); setError(''); }}
+                  className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${!isLogin ? 'bg-[var(--c-element-hover)] text-[var(--c-text)] shadow-sm' : 'text-[var(--c-text-3)] hover:text-[var(--c-text)]'}`}
+                >
+                  Create Account
+                </button>
+              </div>
+              {error && (
+                <div className="p-2.5 bg-[var(--c-danger-bg)] border border-[var(--c-danger-border)] text-[var(--c-danger)] text-xs font-medium rounded-xl text-center">
+                  {error}
+                </div>
+              )}
+              <form onSubmit={handleSubmit} className="space-y-2.5">
+                {!isLogin && (
+                  <>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Full Name</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
+                          placeholder="FULL NAME"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                        />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <UserIcon size={15} className="text-[var(--c-text-2)]" />
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Company Name (ICE)</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
+                          placeholder="ICE for company registration"
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
+                        />
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <UserCogIcon size={15} className="text-[var(--c-text-2)]" />
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+                <div>
+                  <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Email Address</label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
+                      placeholder="name@company.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <MailIcon size={15} className="text-[var(--c-text-2)]" />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-[var(--c-text-2)] uppercase tracking-wider mb-1">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="w-full px-4 py-2.5 bg-[var(--c-element)] border border-[var(--c-border)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium text-sm pr-10"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors">
+                      {showPassword ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
+                    </button>
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] font-bold tracking-wider py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-[var(--c-border)]"
+                >
+                  {isSubmitting ? 'Please wait...' : isLogin ? 'LOGIN' : 'REGISTER'} <ChevronRightIcon size={14} />
+                </button>
+              </form>
+              {/* Footer links */}
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex items-center gap-1.5 text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors cursor-pointer text-xs">
+                  <input type="checkbox" className="accent-white/50 rounded" />
+                  Remember me
+                </label>
+                <button type="button" onClick={handleForgotPassword} className="text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors text-xs">
+                  Forgot password?
                 </button>
               </div>
             </div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] font-bold tracking-wider py-2.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 uppercase text-xs disabled:opacity-40 backdrop-blur-sm border border-[var(--c-border)]"
-            >
-              {isSubmitting ? 'Please wait...' : isLogin ? 'LOGIN' : 'REGISTER'} <ChevronRightIcon size={14} />
-            </button>
-          </form>
-          {/* Footer links */}
-          <div className="flex items-center justify-between pt-1">
-            <label className="flex items-center gap-1.5 text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors cursor-pointer text-xs">
-              <input type="checkbox" className="accent-white/50 rounded" />
-              Remember me
-            </label>
-            <button type="button" onClick={handleForgotPassword} className="text-[var(--c-text-2)] hover:text-[var(--c-text)] transition-colors text-xs">
-              Forgot password?
-            </button>
           </div>
         </div>
       </div>
