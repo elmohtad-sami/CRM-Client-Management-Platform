@@ -7,6 +7,7 @@ import {
 } from '@animateicons/react/lucide';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import AuthPage from './components/AuthPage';
+import Loader from './components/Loader';
 import FilteredClientList from './components/FilteredClientList';
 import GlobalDashboardComponent from './components/GlobalDashboardComponent';
 import AddRiskForm from './components/AddRiskForm';
@@ -798,11 +799,7 @@ export default function App() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[var(--c-bg)] flex items-center justify-center text-[var(--c-text-2)]">
-        Loading account...
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!isAuthenticated) {
