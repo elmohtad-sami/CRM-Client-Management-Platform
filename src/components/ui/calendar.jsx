@@ -5,6 +5,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@animateicons/react/lucide"
 
 const Calendar = forwardRef(({ className, classNames, showOutsideDays = true, ...props }, ref) => (
   <DayPicker
+    ref={ref}
     showOutsideDays={showOutsideDays}
     className={cn("p-3", className)}
     classNames={{

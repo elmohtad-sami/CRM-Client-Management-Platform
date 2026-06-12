@@ -28,7 +28,7 @@ import { authApi } from './api/auth';
 
 export default function App() {
   const navigate = useNavigate();
-  const { role, user, token, login, logout, isAuthenticated, isLoading } = useUser();
+  const { user, token, login, logout, isAuthenticated, isLoading } = useUser();
   const { clients, invoices, setInvoices, createInvoice, updateClientInvoice, addClient, updateClient, deleteClient } = useClients();
 
   const normalizeClientStatus = (value) => {
@@ -141,7 +141,7 @@ export default function App() {
       localStorage.setItem(`finance_crm_devis_${user.email}`, JSON.stringify(devisList));
       localStorage.setItem(`finance_crm_company_${user.email}`, JSON.stringify(companyInfo));
     }
-  }, [invoices, riskAnomalies, devisList, companyInfo]);
+  }, [invoices, riskAnomalies, devisList, companyInfo, user]);
 
   // Load devis from server (authoritative source; overwrites localStorage cache)
   useEffect(() => {
@@ -581,7 +581,7 @@ export default function App() {
 
     const updatePassword = async () => {
       try {
-        const payload = await authApi.updatePassword({
+        await authApi.updatePassword({
           currentPassword: passwordForm.currentPassword,
           newPassword: passwordForm.newPassword,
           confirmPassword: passwordForm.confirmPassword
@@ -789,12 +789,6 @@ export default function App() {
   const showSidebarLabels = isMobile || isSidebarExpanded;
   const isSettingsPage = currentView === 'settings';
   const isClientManagementPage = currentView === 'clients-management';
-  const roleBadgeClasses = {
-    Admin: 'border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] text-[var(--c-danger)]',
-    Finance: 'border-[var(--c-info-border)] bg-[var(--c-info-bg)] text-[var(--c-info)]',
-    Analyst: 'border-[var(--c-accent-border)] bg-[var(--c-accent-bg)] text-[var(--c-accent)]',
-    Viewer: 'border-[var(--c-border)] bg-[var(--c-element)] text-[var(--c-text-2)]'
-  };
   const toggleSidebar = () => {
     if (isMobile) {
       setIsMobileSidebarOpen(prev => !prev);

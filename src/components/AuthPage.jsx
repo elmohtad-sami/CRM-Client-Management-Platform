@@ -61,7 +61,7 @@ export default function AuthPage({ onLogin, initialMode = 'login' }) {
         onLogin?.(payload);
       } else {
         // Registration
-        const registrationData = await authApi.register({ fullName, companyName, email, password });
+        await authApi.register({ fullName, companyName, email, password });
         setVerificationEmail(email);
         setAwaitingVerification(true);
         setVerificationMessage('A verification email has been sent to your inbox. Please enter the code below.');

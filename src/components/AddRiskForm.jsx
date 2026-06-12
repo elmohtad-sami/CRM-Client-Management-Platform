@@ -8,6 +8,7 @@ export default function AddRiskForm({ onAddRisk, onEditRisk, editAnomaly }) {
   const isEditing = Boolean(editAnomaly);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect */
     if (editAnomaly) {
       setDescription(editAnomaly.description || '');
       setLevel(editAnomaly.level || 'High');
@@ -15,6 +16,7 @@ export default function AddRiskForm({ onAddRisk, onEditRisk, editAnomaly }) {
       setDescription('');
       setLevel('High');
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [editAnomaly]);
 
   const handleSubmit = (e) => {

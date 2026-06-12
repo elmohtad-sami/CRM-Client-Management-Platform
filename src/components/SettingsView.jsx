@@ -16,7 +16,6 @@ export default function SettingsView({
   handleLogout,
   isProfileSaving
 }) {
-  const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

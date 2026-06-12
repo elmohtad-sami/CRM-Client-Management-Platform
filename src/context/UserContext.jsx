@@ -5,23 +5,19 @@ const UserContext = createContext(null);
 
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [token, setToken] = useState(() => localStorage.getItem('authToken'));
+  const [isLoading, setIsLoading] = useState(() => !!localStorage.getItem('authToken'));
   const [error, setError] = useState(null);
 
-  // Load user and token from localStorage on mount
+  // Verify token with server on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-      setToken(storedToken);
-      // Optionally verify the token with the server
-      authApi.me(storedToken)
+    if (token) {
+      authApi.me(token)
         .then((response) => {
           setUser(response.user || response);
           setError(null);
         })
         .catch(() => {
-          // Token is invalid, clear it
           localStorage.removeItem('authToken');
           setToken(null);
           setUser(null);
@@ -32,6 +28,7 @@ export function UserProvider({ children }) {
     } else {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const login = useCallback((payload) => {

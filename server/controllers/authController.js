@@ -237,7 +237,7 @@ exports.resendVerificationEmail = asyncHandler(async (req, res, next) => {
   try {
     await sendVerificationEmail(normalizedEmail, user.fullName, verificationToken, verificationCode);
     return res.json({ message: 'Verification email sent successfully' });
-  } catch (err) {
+  } catch (_err) {
     return res.status(500).json({ message: 'Failed to send verification email' });
   }
 });
@@ -269,7 +269,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   try {
     await sendPasswordResetEmail(normalizedEmail, user.fullName, resetToken, resetCode);
     return res.json({ message: 'If that email is registered, a reset code has been sent.' });
-  } catch (err) {
+  } catch (_err) {
     return res.status(500).json({ message: 'Failed to send reset email. Please try again.' });
   }
 });
