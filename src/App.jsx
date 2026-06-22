@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   UsersIcon, InfoIcon, PlusIcon, 
-  Trash2Icon, UserPenIcon, XIcon, ActivityIcon, DollarSignIcon, 
+  Trash2Icon, UserPenIcon,   XIcon, ActivityIcon, DollarSignIcon, 
   SlidersHorizontalIcon, ClipboardIcon, ShieldXIcon, ChevronRightIcon, BookOpenIcon, StarIcon, ShieldCheckIcon, CircleCheckIcon, TriangleAlertIcon, MenuIcon, SettingsIcon, SearchIcon
 } from '@animateicons/react/lucide';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -13,6 +13,7 @@ import GlobalDashboardComponent from './components/GlobalDashboardComponent';
 import AddRiskForm from './components/AddRiskForm';
 import RiskAnomaliesList from './components/RiskAnomaliesList';
 import DevisManager from './components/DevisManager';
+import BankReconciliation from './components/BankReconciliation';
 import ClientDetailsPage from './components/client-details/ClientDetailsPage';
 import ProtectedPermissionRoute from './components/ProtectedPermissionRoute';
 import SettingsView from './components/SettingsView';
@@ -914,6 +915,14 @@ export default function App() {
                 <span className="text-[var(--c-positive)]"><DollarSignIcon size={16}/></span> 
                 {showSidebarLabels && <span>Devis Manager</span>}
               </button>
+              <button 
+                onClick={() => changeView('reconciliation')} 
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-medium text-xs tracking-wider ${!selectedClientName && currentView === 'reconciliation' ? 'bg-[var(--c-element)] text-[var(--c-text)] shadow-sm' : 'hover:bg-[var(--c-element-hover)] hover:text-[var(--c-text)] border border-transparent'}`}
+                title="Bank Reconciliation"
+              >
+                <span className="text-[var(--c-info)]"><ClipboardIcon size={16}/></span> 
+                {showSidebarLabels && <span>Bank Reconciliation</span>}
+              </button>
             </div>
           </div>
 
@@ -943,9 +952,11 @@ export default function App() {
                   ? 'Client Management'
                   : currentView === 'risks'
                     ? 'Risk Anomalies'
-                    : currentView === 'devis'
-                      ? 'Devis Manager'
-                      : currentView === 'client-details'
+                : currentView === 'devis'
+                  ? 'Devis Manager'
+                  : currentView === 'reconciliation'
+                    ? 'Bank Reconciliation'
+                    : currentView === 'client-details'
                         ? 'Client Details'
                         : (currentView !== 'dashboard'
                             ? `Clients List - ${currentView === 'fidèle' ? 'Fidèles' : currentView === 'insolvable' ? 'Insolvables' : 'Solvables'}`
@@ -958,8 +969,10 @@ export default function App() {
                     ? 'Create, edit, and remove client records.'
                     : currentView === 'risks'
                       ? 'Regulatory anomalies and flagged invoices.'
-                      : currentView === 'devis'
-                        ? 'Create and manage client devis (estimates).'
+                    : currentView === 'devis'
+                      ? 'Create and manage client devis (estimates).'
+                      : currentView === 'reconciliation'
+                        ? 'Upload bank statements to auto-match unpaid invoices.'
                         : currentView === 'client-details'
                           ? 'Dedicated client audit and finance tracking'
                           : (currentView !== 'dashboard'
@@ -1140,6 +1153,8 @@ export default function App() {
     console.error('Failed to delete devis:', err);
   }
 }} clients={clients} companyInfo={companyInfo} onUpdateCompanyInfo={setCompanyInfo} />
+          ) : currentView === 'reconciliation' ? (
+            <BankReconciliation />
           ) : (
             <>
               <GlobalDashboardComponent 
