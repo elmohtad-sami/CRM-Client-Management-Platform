@@ -29,12 +29,12 @@ export default function AuditDrawer({
               <div className="bg-[var(--c-surface)] backdrop-blur-xl p-5 rounded-xl border border-[var(--c-border-md)]">
                 <p className="text-[11px] font-semibold text-[var(--c-placeholder)] uppercase tracking-wider mb-3">Target Entry</p>
                 <div className="space-y-2 text-sm text-[var(--c-text-2)] font-medium">
-                  <div className="flex justify-between"><span className="text-[var(--c-text-3)]">Client</span> <span className="text-[var(--c-text)] font-bold">{selectedInvoice.clientName}</span></div>
-                  <div className="flex justify-between"><span className="text-[var(--c-text-3)]">Date</span> <span>{selectedInvoice.date}</span></div>
-                  <div className="flex justify-between"><span className="text-[var(--c-text-3)]">Due Date</span> <span>{selectedInvoice.dueDate || '-'}</span></div>
-                  <div className="flex justify-between"><span className="text-[var(--c-text-3)]">TTC Value</span> <span className="font-bold">{selectedInvoice.totalTTC.toLocaleString()} MAD</span></div>
-                  <div className="flex justify-between"><span className="text-[var(--c-text-3)]">Payment</span> <span>{selectedInvoice.paymentMethod}</span></div>
-                  <div className="flex justify-between items-center gap-3"><span className="text-[var(--c-text-3)]">Status</span> <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${getInvoiceDisplayStatus(selectedInvoice).className}`}>{getInvoiceDisplayStatus(selectedInvoice).label}</span></div>
+                  <div className="flex justify-between gap-2"><span className="text-[var(--c-text-3)] shrink-0">Client</span> <span className="text-[var(--c-text)] font-bold text-right break-words">{selectedInvoice.clientName}</span></div>
+                  <div className="flex justify-between gap-2"><span className="text-[var(--c-text-3)] shrink-0">Date</span> <span className="text-right">{selectedInvoice.date}</span></div>
+                  <div className="flex justify-between gap-2"><span className="text-[var(--c-text-3)] shrink-0">Due Date</span> <span className="text-right">{selectedInvoice.dueDate || '-'}</span></div>
+                  <div className="flex justify-between gap-2"><span className="text-[var(--c-text-3)] shrink-0">TTC Value</span> <span className="font-bold text-right">{selectedInvoice.totalTTC.toLocaleString()} MAD</span></div>
+                  <div className="flex justify-between gap-2"><span className="text-[var(--c-text-3)] shrink-0">Payment</span> <span className="text-right">{selectedInvoice.paymentMethod}</span></div>
+                  <div className="flex justify-between items-center gap-3"><span className="text-[var(--c-text-3)] shrink-0">Status</span> <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${getInvoiceDisplayStatus(selectedInvoice).className}`}>{getInvoiceDisplayStatus(selectedInvoice).label}</span></div>
                 </div>
               </div>
 

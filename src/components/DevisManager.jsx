@@ -291,7 +291,7 @@ export default function DevisManager({ devisList, onAddDevis, onDeleteDevis, com
                 <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-1.5">Nom de la société</label>
                 <input type="text" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium" value={companyForm.name} onChange={handleCompanyFieldChange('name')} placeholder="FINANCE CRM" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-1.5">Adresse</label>
                   <input type="text" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium" value={companyForm.address} onChange={handleCompanyFieldChange('address')} placeholder="123, Avenue Mohammed V" />
@@ -301,7 +301,7 @@ export default function DevisManager({ devisList, onAddDevis, onDeleteDevis, com
                   <input type="text" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium" value={companyForm.city} onChange={handleCompanyFieldChange('city')} placeholder="Casablanca, Maroc" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-1.5">Téléphone</label>
                   <input type="text" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium" value={companyForm.phone} onChange={handleCompanyFieldChange('phone')} placeholder="+212 5 22 00 00 00" />
@@ -311,7 +311,7 @@ export default function DevisManager({ devisList, onAddDevis, onDeleteDevis, com
                   <input type="email" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium" value={companyForm.email} onChange={handleCompanyFieldChange('email')} placeholder="contact@financecrm.ma" />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-1.5">RC</label>
                   <input type="text" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium" value={companyForm.rc} onChange={handleCompanyFieldChange('rc')} placeholder="123456" />
@@ -354,7 +354,7 @@ export default function DevisManager({ devisList, onAddDevis, onDeleteDevis, com
                 <input required type="text" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium" value={clientInfo.name} onChange={handleClientChange('name')} placeholder="Nom du client" />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-1.5">Email</label>
                   <input type="email" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium" value={clientInfo.email} onChange={handleClientChange('email')} placeholder="client@email.com" />
@@ -365,7 +365,7 @@ export default function DevisManager({ devisList, onAddDevis, onDeleteDevis, com
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-1.5">Société</label>
                   <input type="text" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium" value={clientInfo.company} onChange={handleClientChange('company')} placeholder="Nom de la société" />
@@ -393,7 +393,7 @@ export default function DevisManager({ devisList, onAddDevis, onDeleteDevis, com
                 <span className="text-[10px] text-[var(--c-positive)]/70 font-medium bg-[var(--c-positive-bg)] px-2.5 py-1 rounded-full border border-[var(--c-positive-border)]">Étape 3/3</span>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-1.5">Référence</label>
                   <input required type="text" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium" value={devisInfo.reference} onChange={handleDevisChange('reference')} placeholder="DEV-2026-001" />
@@ -413,7 +413,7 @@ export default function DevisManager({ devisList, onAddDevis, onDeleteDevis, com
                 <textarea className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium resize-none" rows={3} value={devisInfo.description} onChange={handleDevisChange('description')} placeholder="Description des prestations..." />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-1.5">Montant HT</label>
                   <input type="number" step="0.01" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] placeholder-[var(--c-placeholder)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] outline-none transition-all font-medium" value={devisInfo.amountHT} onChange={handleDevisChange('amountHT')} placeholder="0.00" />
@@ -485,7 +485,7 @@ export default function DevisManager({ devisList, onAddDevis, onDeleteDevis, com
                     </td>
                     <td className="px-6 py-3 text-[var(--c-text-2)]">{new Date(devis.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-3 text-right">
-                      <button onClick={() => onDeleteDevis(devis.id)} className="opacity-0 group-hover:opacity-100 rounded-lg border border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] p-1.5 text-[var(--c-danger)] hover:bg-[var(--c-danger-hover)] transition-all">
+                      <button onClick={() => onDeleteDevis(devis.id)} className="sm:opacity-0 sm:group-hover:opacity-100 rounded-lg border border-[var(--c-danger-border)] bg-[var(--c-danger-bg)] p-1.5 text-[var(--c-danger)] hover:bg-[var(--c-danger-hover)] transition-all">
                         <Trash2Icon size={14} />
                       </button>
                     </td>

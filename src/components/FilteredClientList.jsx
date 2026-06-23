@@ -231,7 +231,7 @@ export default function FilteredClientList({
         </div>
       ) : (
         <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm whitespace-nowrap">
+        <table className="w-full text-left text-sm whitespace-nowrap min-w-[650px]">
           <thead className="bg-[var(--c-elevated)] border-b border-[var(--c-border)] text-[var(--c-text-3)]">
             <tr>
               <th className="px-4 py-3 font-bold tracking-wider uppercase text-xs">Client</th>
@@ -292,7 +292,7 @@ export default function FilteredClientList({
                     </td>
                   )}
                   <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex justify-end gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(event) => {
                           event.stopPropagation();

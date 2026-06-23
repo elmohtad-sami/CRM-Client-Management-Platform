@@ -14,9 +14,9 @@ export default function InvoiceModal({
   if (!isModalOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[var(--c-overlay)] backdrop-blur-xl" onClick={() => setIsModalOpen(false)}></div>
-      <div className="relative bg-[var(--c-bg)] backdrop-blur-2xl rounded-2xl shadow-2xl w-full max-w-lg p-8 animate-in zoom-in-95 duration-200 border border-[var(--c-border-md)]">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="fixed inset-0 bg-[var(--c-overlay)] backdrop-blur-xl" onClick={() => setIsModalOpen(false)}></div>
+      <div className="relative bg-[var(--c-bg)] backdrop-blur-2xl rounded-2xl shadow-2xl w-full max-w-lg p-4 sm:p-8 my-4 animate-in zoom-in-95 duration-200 border border-[var(--c-border-md)]">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-[var(--c-text)]">{editingId ? 'Edit Record' : 'New Invoice'}</h3>
           <button onClick={() => setIsModalOpen(false)} className="text-[var(--c-placeholder)] hover:text-[var(--c-text)] bg-[var(--c-element)] hover:bg-[var(--c-element-hover)] p-1.5 rounded-full transition-colors"><XIcon size={18} /></button>
@@ -40,7 +40,7 @@ export default function InvoiceModal({
               <option value="Insolvable" className="bg-gray-900 text-[var(--c-danger)]">Insolvable</option>
             </select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-2">Issue Date</label>
               <DatePicker value={formData.date} onChange={(val) => setFormData({...formData, date: val})} placeholder="Pick a date" />
@@ -57,7 +57,7 @@ export default function InvoiceModal({
             <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-2">Date d'échéance</label>
             <DatePicker value={formData.dueDate} onChange={(val) => setFormData({...formData, dueDate: val})} placeholder="Pick a date" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-2">Amount HT</label>
               <input required type="number" step="0.01" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] focus:bg-[var(--c-element-hover)] outline-none transition-all font-medium placeholder-[var(--c-placeholder)]" value={formData.amountHT} onChange={e => setFormData({...formData, amountHT: e.target.value})} />
@@ -67,7 +67,7 @@ export default function InvoiceModal({
               <input required type="number" step="0.01" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] focus:bg-[var(--c-element-hover)] outline-none transition-all font-medium placeholder-[var(--c-placeholder)]" value={formData.tva} onChange={e => setFormData({...formData, tva: e.target.value})} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[11px] font-semibold text-[var(--c-text-3)] uppercase tracking-wider mb-2">Delay (Days)</label>
               <input required type="number" className="w-full bg-[var(--c-element)] border border-[var(--c-border-strong)] text-[var(--c-text)] rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[var(--c-border)] focus:bg-[var(--c-element-hover)] outline-none transition-all font-medium placeholder-[var(--c-placeholder)]" value={formData.paymentDelay} onChange={e => setFormData({...formData, paymentDelay: e.target.value})} />

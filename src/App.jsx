@@ -932,16 +932,16 @@ export default function App() {
       <div className="flex-1 overflow-y-auto relative flex flex-col">
         
         {/* Top Header */}
-        <header data-print-hide className="bg-[var(--c-elevated)] backdrop-blur-xl border-b border-[var(--c-border)] px-8 py-5 flex justify-between items-center z-10 sticky top-0 shadow-sm">
-          <div>
+        <header data-print-hide className="bg-[var(--c-elevated)] backdrop-blur-xl border-b border-[var(--c-border)] px-4 sm:px-8 py-3 sm:py-5 flex flex-wrap items-center gap-3 z-10 sticky top-0 shadow-sm">
+          <div className="min-w-0 flex-1">
             <button
               onClick={toggleSidebar}
-              className="lg:hidden mb-3 p-2 bg-[var(--c-element)] hover:bg-[var(--c-element-hover)] rounded-lg transition-colors text-[var(--c-text-2)]"
+              className="lg:hidden mb-2 p-2 bg-[var(--c-element)] hover:bg-[var(--c-element-hover)] rounded-lg transition-colors text-[var(--c-text-2)]"
               title="Toggle sidebar"
             >
               <MenuIcon size={18} />
             </button>
-            <h2 className="text-lg font-bold text-[var(--c-text)]">
+            <h2 className="text-base sm:text-lg font-bold text-[var(--c-text)] truncate">
               {isSettingsPage
                 ? 'Settings'
                 : isClientManagementPage
@@ -972,20 +972,20 @@ export default function App() {
                               : (selectedClientName ? 'Dedicated client audit and finance tracking' : (user?.companyName ? `Overview for ${user.companyName}` : 'Enterprise firm overview')))}
               </p>
             </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
               <NotificationBell />
-            <button onClick={() => handleRunAudit()} disabled={invoices.length === 0} className="bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] rounded-xl backdrop-blur-sm border border-[var(--c-border)] px-4 py-2.5 flex items-center justify-center gap-2 font-semibold text-xs tracking-wider uppercase transition-all disabled:opacity-50">
-              <ShieldXIcon size={14} /> Scan for Risks
+            <button onClick={() => handleRunAudit()} disabled={invoices.length === 0} className="bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] rounded-xl backdrop-blur-sm border border-[var(--c-border)] px-2 sm:px-4 py-2 sm:py-2.5 flex items-center justify-center gap-1 sm:gap-2 font-semibold text-xs tracking-wider uppercase transition-all disabled:opacity-50">
+              <ShieldXIcon size={14} /> <span className="hidden sm:inline">Scan for Risks</span>
             </button>
-            <button onClick={() => openModal()} className="bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] rounded-xl backdrop-blur-sm border border-[var(--c-border)] px-4 py-2.5 flex items-center justify-center gap-2 font-semibold text-xs tracking-wider uppercase transition-all">
-              <PlusIcon size={14} /> Add Invoice
+            <button onClick={() => openModal()} className="bg-[var(--c-element)] hover:bg-[var(--c-element-hover-2)] text-[var(--c-text)] rounded-xl backdrop-blur-sm border border-[var(--c-border)] px-2 sm:px-4 py-2 sm:py-2.5 flex items-center justify-center gap-1 sm:gap-2 font-semibold text-xs tracking-wider uppercase transition-all">
+              <PlusIcon size={14} /> <span className="hidden sm:inline">Add Invoice</span>
             </button>
             <ThemeToggle />
             <SettingsDropdown user={user} onLogout={handleLogout} changeView={changeView} />
           </div>
         </header>
 
-        <main className="p-8 space-y-8 max-w-7xl w-full mx-auto">
+        <main className="p-4 sm:p-8 space-y-6 sm:space-y-8 max-w-7xl w-full mx-auto">
           {currentView === 'client-details' ? (
             <ProtectedPermissionRoute action="view_clients">
               <ClientDetailsPage
